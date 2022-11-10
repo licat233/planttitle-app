@@ -1,0 +1,21 @@
+.uni-list-item_chat .uni-list-item__container {
+	padding: 0 0 4px 0;
+	margin: 0;
+	display: block;
+}
+
+.uni-list-item_chat .uni-list-item__container .uni-list-item__header {
+	display: none;
+}
+
+.uni-list-item_chat .border--left {
+	display: none;
+}
+
+.uni-list_chat .uni-list--border-top {
+	display: none;
+}
+
+.uni-list_chat .uni-list--border-bottom {
+	display: none;
+}

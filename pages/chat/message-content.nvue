@@ -1,0 +1,109 @@
+<template>
+	<view ref="messagecontent" class="messagecontent">
+		<!-- 文本 -->
+		<template v-if="msg.contentType == 0">
+			<view class="textarea" v-html="messageContentHandle(msg.content)"></view>
+		</template>
+		<!-- 图片 -->
+		<template v-else-if="msg.contentType == 1">
+			<view class="picture" @tap="onImage(msg)">
+				<image lazy-load mode="widthFix" :src="resizeImage(msg.content?.imageUrl || '', 200)" />
+			</view>
+		</template>
+		<!-- 表情 -->
+		<template v-else-if="msg.contentType == 2">
+			<view class="wrap emoji">
+				<image :src="msg.content?.imageUrl" mode="aspectFit" />
+			</view>
+		</template>
+		<!-- 视频 -->
+		<template v-else-if="msg.contentType == 4">
+			<view class="video" @tap="onVideo(msg)">
+				<image :src="videoPoster(msg.content?.videoUrl || '', [0, 300])" mode="aspectFill" />
+				<text class="cl-icon-play"></text>
+			</view>
+		</template>
+		<!-- 錯誤 -->
+		<view class="error" v-if="msg.error">
+			<text class="cl-icon-warning-border"></text>
+			{{ msg.error }}
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		props: {
+			msg: {
+				type: Object,
+				default: null
+			},
+			msgList: {
+				type: Array,
+				default: [],
+			}
+		},
+		data() {
+			return {}
+		},
+		mounted() {
+			// let el = this.$refs.messagecontent.$el;
+			// console.log(el);
+			// el.oncontextmenu = true;
+		},
+		methods: {
+			htmlEscape(text) {
+				//先处理可能存在的html标签，再处理换行符
+				switch (text) {
+					case "<":
+						return "&lt;";
+					case ">":
+						return "&gt;";
+					case "&":
+						return "&amp;";
+					case "\"":
+						return "&quot;";
+					case ";":
+						return "；";
+					case ",":
+						return "，";
+					case "`":
+						return "·";
+					default:
+						return text;
+				}
+			},
+			messageContentHandle(str) {
+				let arr = new Array();
+				for (let i = 0; i < str.length; i++) {
+					arr[i] = this.htmlEscape(str[i]);
+				}
+				let result = arr.join("");
+				result = result.trim();
+				result = result.replace(/\r\n/g, "<br>");
+				result = result.replace(/\n/g, "<br>");
+				result = result.replace(/(\r\n)|(\n)/g, '<br>');
+				result = result.replace(/\s/g, "&nbsp;");
+				arr = null;
+				return result;
+			},
+			onImage(msg) {
+				const urls = [];
+				const chatData = this.msgList || [];
+				chatData.forEach((item) => {
+					if (item.contentType == 1 && item.content) {
+						urls.push(item.content);
+					}
+				});
+				uni.previewImage({
+					current: urls.indexOf(this.msg.content || ""),
+					urls,
+				});
+			}
+		}
+	}
+</script>
+
+<style>
+
+</style>

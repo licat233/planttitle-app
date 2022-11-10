@@ -1,0 +1,23 @@
+{
+	"app": {
+		"name": "植題"
+	},
+	"news": {
+		"title": "新聞資訊"
+	},
+	"mall": {
+		"title": "精品推薦"
+	},
+	"campaign": {
+		"title": "限時活動"
+	},
+	"chat": {
+		"title": "anna在線"
+	},
+	"center": {
+		"title": "個人中心"
+	},
+	"common": {
+		"notSupport": "暫未支持"
+	}
+}

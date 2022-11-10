@@ -1,0 +1,23 @@
+{
+	"app": {
+		"name": "植题"
+	},
+	"news": {
+		"title": "新闻资讯"
+	},
+	"mall": {
+		"title": "精品推荐"
+	},
+	"campaign": {
+		"title": "限时活动"
+	},
+	"chat": {
+		"title": "anna在线"
+	},
+	"center": {
+		"title": "个人中心"
+	},
+	"common": {
+		"notSupport": "暂未支持"
+	}
+}

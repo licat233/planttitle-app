@@ -1,0 +1,242 @@
+<template v-if="show">
+	<view>
+		<view class="chathistorydate" v-if="this.isShowDate">
+			<text class="chatmessagedate">{{msgDate(msg.timestamp)}}</text>
+		</view>
+
+		<view class="chatinfocard">
+			<template v-if="msg.isSelf">
+				<view class="selfchatcard">
+					<view class="chatmessagelabe">
+						<view class="chatmessagestate">{{msg.state}}</view>
+						<view class="chatmessagetime">{{msgTime}}</view>
+					</view>
+					<view class="chatmessage" selectable="true">
+						<message-content :msg="msg" :msgList="msgList" />
+					</view>
+				</view>
+			</template>
+
+			<template v-else>
+				<view class="friendchatcard">
+					<view class="chatavatar">
+						<image @click="showInfo()" class="chatavatar-img" v-bind:src="waiterAvatar">
+						</image>
+					</view>
+					<view class="chatmessage">
+						<message-content :msg="msg" />
+					</view>
+					<view class="chatmessagelabe">
+						<view class="chatmessagetime">{{msgTime}}</view>
+					</view>
+				</view>
+			</template>
+		</view>
+	</view>
+</template>
+
+<script>
+	import {
+		msgDate
+	} from "@/common/util.js";
+	import messageContent from "./message-content.nvue";
+	import dayjs from "dayjs";
+
+	/**
+	msg{
+		_id: String; //唯一id
+		state: 0 | 1; //0-未读，1-已读
+		timestamp: Number; //时间戳
+		contentType: 0 | 1 | 2 | 3 | 4 ; //0-文本消息，1-图片消息，2-表情消息，3-语音消息，4-视频消息
+		content: String; //内容
+		isSelf: Boolean; //是自己的？
+		error: String; //错误信息
+	}
+	*/
+
+	export default {
+		components: {
+			messageContent
+		},
+		props: {
+			msg: {
+				type: Object,
+				default: null
+			},
+			isShowDate: {
+				type: Boolean,
+				default: false
+			},
+			msgList: {
+				type: Array,
+				default: [],
+			},
+			showInfo: {
+				type: Function,
+				default: function() {}
+			}
+		},
+		data() {
+			return {
+				waiterAvatar: "https://img.alicdn.com/imgextra/i1/917298378/O1CN01Su4K112BlAqorDkFr_!!917298378.jpg",
+				msgTime: this.msgTimeFormat(this.msg.timestamp),
+				show: this.verifyMsg(this.msg)
+			};
+		},
+		methods: {
+			msgDate(timestamp) {
+				return msgDate(timestamp);
+			},
+			msgTimeFormat(t) {
+				return dayjs(t).format("HH:mm")
+			},
+			verifyMsg(msg) {
+				if (!msg) return false;
+				if (!msg.content) return false;
+				if (msg.content.trim().length === 0) return false;
+				return true;
+			}
+		},
+	};
+</script>
+
+<style>
+	
+	
+	.uni-list-item__header {
+		display: none;
+	}
+	
+	.chathistorydate {
+		width: 100%;
+		text-align: center;
+		margin-bottom: 4px;
+	}
+
+	.chatmessagedate {
+		font-size: 12px;
+		line-height: 12px;
+		color: #fff;
+		background-color: #00000028;
+		padding: 3px 8px;
+		border-radius: 13px;
+		font-weight: lighter;
+	}
+
+	.chatinfocard {
+		margin-bottom: 4px;
+	}
+
+	.selfchatcard {
+		display: flex;
+		justify-content: flex-end;
+		min-height: 30px;
+	}
+
+	.chatmessagelabe {
+		min-width: 60px;
+		position: relative;
+		display: flex;
+		justify-content: flex-end;
+		align-items: flex-end;
+		flex-direction: column;
+	}
+
+	.chatmessagetime,
+	.chatmessagestate {
+		min-width: 60px;
+		font-size: 8px;
+		line-height: 12px;
+		word-break: break-all;
+		letter-spacing: 0px;
+		color: #3e5474;
+		font-weight: bold;
+	}
+
+	.chatmessagestate {
+		display: none;
+	}
+
+	.selfchatcard>.chatmessage {
+		background-color: #93DF83;
+	}
+
+	.selfchatcard>.chatmessage::before {
+		content: '';
+		width: 0;
+		height: 0;
+		border: 10px solid transparent;
+		border-bottom-color: #93DF83;
+		top: -6px;
+		right: -3px;
+		position: absolute;
+		z-index: 0;
+		transform: rotate(-60deg);
+	}
+
+	.chatmessage {
+		margin: 4px 4px 0;
+		position: relative;
+		text-align: left;
+		max-width: 100%;
+		background-color: #fff;
+		border-radius: 14px;
+		padding: 6px;
+		font-size: 14px;
+		font-weight: bold;
+		color: #111111;
+		word-break: break-all;
+		white-space: pre-wrap;
+	}
+
+	.friendchatcard {
+		display: flex;
+		justify-content: flex-start;
+		min-height: 30px;
+	}
+
+	.chatavatar {
+		height: 30px;
+		width: 30px;
+		min-width: 30px;
+		overflow: hidden;
+		border-radius: 50%;
+		margin-right: 4px;
+		background-color: #fff;
+	}
+
+	.chatavatar .chatavatar-img {
+		height: 30px;
+		width: 30px;
+		margin: 0;
+		padding: 0;
+		border: none;
+		vertical-align: middle;
+		background-color: #fff;
+	}
+
+	.friendchatcard .chatmessage {
+		background-color: #fff;
+	}
+
+	.friendchatcard .chatmessage::before {
+		content: '';
+		width: 0;
+		height: 0;
+		border: 10px solid transparent;
+		border-bottom-color: #fff;
+		top: -6px;
+		left: -3px;
+		position: absolute;
+		z-index: 0;
+		transform: rotate(60deg);
+	}
+
+	.friendchatcard .chatmessagelabe {
+		text-align: left;
+	}
+
+	.selfchatcard .chatmessagelabe {
+		text-align: right;
+	}
+</style>

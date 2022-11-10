@@ -1,0 +1,23 @@
+{
+	"app": {
+		"name": "planttitle"
+	},
+	"news": {
+		"title": "news"
+	},
+	"mall": {
+		"title": "product"
+	},
+	"campaign": {
+		"title": "campaign"
+	},
+	"chat": {
+		"title": "consult"
+	},
+	"center": {
+		"title": "center"
+	},
+	"common": {
+		"notSupport": "not support"
+	}
+}

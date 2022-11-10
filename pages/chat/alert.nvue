@@ -1,0 +1,35 @@
+<template>
+	<uni-popup ref="popup" type="message">
+		<uni-popup-message v-bind:type="popuptype" v-bind:message="popupmessage" :duration="popupduration">
+		</uni-popup-message>
+	</uni-popup>
+</template>
+<script>
+	// import {
+	// 	initVueI18n
+	// } from '@dcloudio/uni-i18n';
+	// import messages from "@/i18n/lang.js"
+	// const { t } = initVueI18n(messages)
+	
+	export default {
+		data() {
+			return {
+				popuptype: "info",
+				popupmessage: "",
+				popupduration: 1000,
+			}
+		},
+		methods: {
+			open(message = "", type = "info", direction = "center", duration = 1000) {
+				this.popupmessage = message;
+				this.popuptype = type;
+				this.popupduration = duration || 1000;
+				this.$refs.popup.open(direction);
+				let _this = this;
+				setTimeout(() => {
+					_this.$refs.popup.close();
+				}, _this.duration);
+			}
+		},
+	}
+</script>
