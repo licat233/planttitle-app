@@ -1,5 +1,5 @@
 <template>
-	<view ref="messagecontent" class="messagecontent">
+	<view class="messagecontent">
 		<!-- 文本 -->
 		<template v-if="msg.contentType == 0">
 			<view class="textarea" v-html="messageContentHandle(msg.content)"></view>
@@ -46,11 +46,7 @@
 		data() {
 			return {}
 		},
-		mounted() {
-			// let el = this.$refs.messagecontent.$el;
-			// console.log(el);
-			// el.oncontextmenu = true;
-		},
+		mounted() {},
 		methods: {
 			htmlEscape(text) {
 				//先处理可能存在的html标签，再处理换行符
@@ -74,6 +70,9 @@
 				}
 			},
 			messageContentHandle(str) {
+				if(typeof str !== 'string') {
+					return JSON.stringify(str);
+				}
 				let arr = new Array();
 				for (let i = 0; i < str.length; i++) {
 					arr[i] = this.htmlEscape(str[i]);
@@ -105,5 +104,25 @@
 </script>
 
 <style>
-
+	.messagecontent {
+		user-select: auto;
+		-webkit-user-select: auto;
+		/* PC端  */
+		/*火狐*/
+		-moz-user-select: text;
+		/*chrome浏览器*/
+		-webkit-user-select: text;
+		/*IE10*/
+		-ms-user-select: text;
+		/*早期浏览器*/
+		-khtml-user-select: text;
+		user-select: text;
+		/* MB端 */
+		-webkit-touch-callout: text;
+		-webkit-user-select: text;
+		-khtml-user-select: text;
+		-moz-user-select: text;
+		-ms-user-select: text;
+		user-select: text;
+	}
 </style>

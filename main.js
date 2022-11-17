@@ -24,7 +24,8 @@
 // 	};
 // }
 
-import messages from "./i18n/lang.js"
+import './.env.js'
+import messages from "./i18n"
 
 let i18nConfig = {
 	locale: uni.getLocale(), // 获取已设置的语言
@@ -54,9 +55,8 @@ import {
 	createSSRApp
 } from 'vue'
 import {
-	createI18n
+	createI18n,
 } from 'vue-i18n'
-
 export function createApp() {
 	const app = createSSRApp(App)
 	const i18n = createI18n(i18nConfig)

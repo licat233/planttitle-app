@@ -176,3 +176,37 @@ export function utf8ToB64(str) {
 export function b64ToUtf8(str) {
 	return decodeURIComponent(escape(window.atob(str)));
 };
+
+export function setCache(key, obj) {
+	try {
+		uni.setStorageSync(key, obj);
+	} catch (e) {
+		console.log(e)
+		//TODO handle the exception
+	}
+	// if (navigator.cookieEnabled && typeof window.localStorage !== 'undefined') {
+	// 	localStorage.setItem(key, JSON.stringify(obj));
+	// }
+};
+
+export function getCache(key) {
+	try {
+		const value = uni.getStorageSync(key);
+		return value;
+	} catch (e) {
+		console.log(e)
+		// error
+	}
+	return null;
+	// if (navigator.cookieEnabled && typeof window.localStorage !== 'undefined') {
+	// 	return JSON.parse(localStorage.getItem(key));
+	// }
+};
+
+export function getReferer() {
+	if (document.referrer) {
+		return document.referrer;
+	} else {
+		return false;
+	}
+}

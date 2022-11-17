@@ -92,6 +92,9 @@
 					}
 				});
 			}
+		},
+		mounted() {
+			uni.showTabBar();
 		}
 	}
 </script>

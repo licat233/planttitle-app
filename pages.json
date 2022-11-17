@@ -100,7 +100,8 @@
 				"pagePath": "pages/center/index",
 				"iconPath": "static/icon/tabbar/center.png",
 				"selectedIconPath": "static/icon/tabbar/center_active.png",
-				"text": "%center.title%"
+				"text": "%center.title%",
+				"visible": "false"
 			}
 			//#endif
 		]

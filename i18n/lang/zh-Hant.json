@@ -18,6 +18,7 @@
 		"title": "個人中心"
 	},
 	"common": {
-		"notSupport": "暫未支持"
+		"notSupport": "暫未支持",
+		"confirmType": "換行"
 	}
 }

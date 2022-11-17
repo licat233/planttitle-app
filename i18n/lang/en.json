@@ -18,6 +18,7 @@
 		"title": "center"
 	},
 	"common": {
-		"notSupport": "not support"
+		"notSupport": "not support",
+		"confirmType": "break"
 	}
 }
