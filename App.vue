@@ -47,8 +47,9 @@
 					key: "visitor",
 					success(data) {
 						info = data;
-					},fail(err) {
-						console.log(e)
+					},
+					fail(err) {
+						console.log(err)
 					}
 				});
 				//加入版本号，以主动更新缓存，
