@@ -1,33 +1,33 @@
 <template v-if="show">
 	<view>
 		<view class="chathistorydate" v-if="this.isShowDate">
-			<text class="chatmessagedate">{{msgDate(msg.timestamp)}}</text>
+			<text class="chatmessagedate">{{sendDate}}</text>
 		</view>
 
 		<view class="chatinfocard">
-			<template v-if="msg.isSelf">
-				<view class="selfchatcard">
-					<view class="chatmessagelabe">
-						<view class="chatmessagestate">{{msg.state}}</view>
-						<view class="chatmessagetime">{{msgTime}}</view>
-					</view>
-					<view class="chatmessage" selectable="true">
-						<message-content :msg="msg" :msgList="msgList" />
-					</view>
-				</view>
-			</template>
-
-			<template v-else>
+			<template v-if="!self">
 				<view class="friendchatcard">
 					<view class="chatavatar">
 						<image @click="showInfo()" class="chatavatar-img" v-bind:src="waiterAvatar">
 						</image>
 					</view>
 					<view class="chatmessage">
-						<message-content :msg="msg" />
+						<msg-content :msg="msg" :msgList="msgList" />
 					</view>
 					<view class="chatmessagelabe">
 						<view class="chatmessagetime">{{msgTime}}</view>
+					</view>
+				</view>
+			</template>
+
+			<template v-else>
+				<view class="selfchatcard">
+					<view class="chatmessagelabe">
+						<view class="chatmessagestate">{{msg.isRead}}</view>
+						<view class="chatmessagetime">{{msgTime}}</view>
+					</view>
+					<view class="chatmessage" selectable="true">
+						<msg-content :msg="msg" :msgList="msgList" />
 					</view>
 				</view>
 			</template>
@@ -37,26 +37,17 @@
 
 <script>
 	import {
-		msgDate
+		msgDate,
 	} from "@/common/util.js";
-	import messageContent from "./message-content.nvue";
+	import msgContent from "./msg-content.nvue";
 	import dayjs from "dayjs";
-
-	/**
-	msg{
-		_id: String; //唯一id
-		state: 0 | 1; //0-未读，1-已读
-		timestamp: Number; //时间戳
-		contentType: 0 | 1 | 2 | 3 | 4 ; //0-文本消息，1-图片消息，2-表情消息，3-语音消息，4-视频消息
-		content: String; //内容
-		isSelf: Boolean; //是自己的？
-		error: String; //错误信息
-	}
-	*/
+	import {
+		formatTimestamp
+	} from "@/common/format.js";
 
 	export default {
 		components: {
-			messageContent
+			msgContent
 		},
 		props: {
 			msg: {
@@ -79,34 +70,54 @@
 		data() {
 			return {
 				waiterAvatar: "https://img.alicdn.com/imgextra/i1/917298378/O1CN01Su4K112BlAqorDkFr_!!917298378.jpg",
-				msgTime: this.msgTimeFormat(this.msg.timestamp),
-				show: this.verifyMsg(this.msg)
+				msgTime: this.msgTimeFormat(),
+				show: this.verifyMsg(),
+				self: this.msg.fromUID !== this.msg.channel.channelID,
+				sendDate: this.messageDate(),
 			};
 		},
+		mounted() {
+			// console.log(this.msgList)
+		},
 		methods: {
-			msgDate(timestamp) {
-				return msgDate(timestamp);
+			messageDate() {
+				return msgDate(this.msg.timestamp * 1000 || new Date().getTime());
 			},
-			msgTimeFormat(t) {
+			msgTimeFormat() {
+				let t = this.msg.timestamp * 1000
 				return dayjs(t).format("HH:mm")
 			},
-			verifyMsg(msg) {
-				if (!msg) return false;
-				if (!msg.content) return false;
-				if (msg.content.trim().length === 0) return false;
-				return true;
-			}
+			verifyMsg() {
+				if (typeof this.msg?.contentType !== "number") return false
+				let contentType = this.msg.content.realContentType || this.msg.content._contentType ||  this.msg.content?.contentObj?.type
+				switch (contentType) {
+					case 1, undefined:
+						//默认为文本消息
+						let text = this.msg.content.text || this.msg.content?.contentObj?.content
+						if (typeof text !== "string") {
+							return false
+						}
+						return text.trim().length !== 0
+					case 2:
+						//图片消息
+						let url = this.msg.content?.contentObj?.url
+						if (!url) return false
+						url = url + ""
+						if (url.trim().length === 0) return false
+					default:
+						//其它类型消息，暂不支持
+						return false
+				}
+			},
 		},
 	};
 </script>
 
 <style>
-	
-	
 	.uni-list-item__header {
 		display: none;
 	}
-	
+
 	.chathistorydate {
 		width: 100%;
 		text-align: center;

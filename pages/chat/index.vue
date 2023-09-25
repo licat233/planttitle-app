@@ -33,11 +33,12 @@
 								:scroll-top="scroller.top" :upper-threshold="0" scroll-anchoring
 								@scrolltoupper="loadmore">
 								<uni-list ref="chatList" class="uni-list_chat">
-									<uni-list-item v-for="(msg, index) in dataList" :key="msg._id"
+									<uni-list-item v-for="(msg, index) in massageStore" :key="msg.uuid"
 										class="uni-list-item_chat" :border="false">
 										<template v-slot:body>
-											<msgItem :msg="msg" :msgList="dataList" :isShowDate="isShowDate(index)"
-												:showInfo="showInfoDrawer" />
+											<msg-card :msg="msg" :msgList="massageStore" :isShowDate="isShowDate(index)"
+												:showInfo="showInfoDrawer">
+											</msg-card>
 										</template>
 									</uni-list-item>
 								</uni-list>
@@ -73,8 +74,8 @@
 											@input="oninput()" type="text" v-bind:placeholder="placeholdertext"
 											v-model="inputContext" rows="1" maxlength="800" name="chatinputtxt"
 											wrap="hard" confirm-type="return" placeholder-class="placeholder-text"
-											v-bind:focus="isFocus" confirm-hold adjust-position disable-default-padding
-											auto-blur auto-height />
+											v-bind:focus="isFocus" @keydown="handleKeyDown" confirm-hold adjust-position
+											disable-default-padding auto-blur auto-height />
 
 										<view class="chatinputemoji">
 											<view class="chatinputemojibox">
@@ -113,25 +114,52 @@
 </template>
 
 <script>
-	import msgItem from "./msg-item.nvue";
+	import msgCard from "./msg-card.nvue";
 	import mpopup from "@/components/xuan-popup/xuan-popup.vue";
 	import {
 		hideChatTabBarNotify,
 		getNowTime,
 		isSameDay,
 		msgTime,
-		msgDate
+		msgDate,
 	} from "@/common/util.js";
+	import {
+		formatTimestamp
+	} from "@/common/format.js";
 	import * as func from "@/common/functions.js";
 	import {
 		nanoid
 	} from 'nanoid';
 	import "./uni.css";
 	import axios from "axios";
+	import {
+		Channel,
+		ChannelTypePerson,
+		WKSDK,
+		ConnectStatus,
+		MessageText,
+		MediaMessageContent,
+	} from "wukongimjssdk";
+
+	getApp().globalData.apiUrl = "http://api.im.catli.net/v1";
+
+	if (!window.projectUuid) {
+		window.projectUuid = "87b28048c7af4357af08a105d92ad45a"
+	}
+
+	// const api = new chat.ChatApi(getApp().globalData.apiClient);
+	const MsgType = {
+		VisitorMsgType: 0,
+		KefuMsgType: 1,
+		PublicMsgType: 2,
+		SystemMsgType: 3,
+		OnlineMsgType: 4,
+		offlineMsgType: 5
+	};
 
 	export default {
 		components: {
-			msgItem,
+			msgCard,
 			mpopup
 		},
 		data() {
@@ -141,7 +169,7 @@
 				nowtime: getNowTime(),
 				placeholdertext: "Aa",
 				inputContext: "",
-				dataList: [],
+				massageStore: [],
 				waiterAvatar: "https://img.alicdn.com/imgextra/i1/917298378/O1CN01Su4K112BlAqorDkFr_!!917298378.jpg",
 				isShowInfo: false,
 				scroller: {
@@ -153,37 +181,180 @@
 					height: "auto"
 				},
 				chatInputInitHeight: "34px",
-				drawerWidth: 340
+				drawerWidth: 340,
+				// ws: null,
+				// wsconnStatus: false,
+				// reloginCount: 0,
+				isloadrecod: false,
+				wsaddrs: [],
+				loginInfo: {
+					"token": "",
+					"user_uid": "",
+					"kefu_uid": "",
+					"project_uid": window.projectUuid,
+				},
+				addrUsed: false,
+				unreadMsgCount: 0,
 			}
 		},
 		created() {
-			this.initData(); //上线后需要放置到mounted生命周期中
+
 		},
-		async mounted(){
+		async mounted() {
 			hideChatTabBarNotify();
 			this.chatInputInitHeight = this.getChatinputboxHeight() + "px";
 			this.scrollBottom();
 			this.drawerWidth = this.getWindowWidth();
-			await this.VisitorLogin();
+
+			let chatinputtxtE = document.querySelector(".chatinputtxt");
+			chatinputtxtE.addEventListener("keydown", this.handleKeyDown);
+
+			await this.startup(); //上线后需要放置到mounted生命周期中
+		},
+		watch() {
+			//长度限制800
+			if (this.inputContext.length > 800) {
+				this.inputContext = String(this.inputContext).slice(0, 800);
+			}
 		},
 		methods: {
+			async startup() {
+				const data = await this.visitorLogin();
+				if (!data) return;
+				const _this = this;
+				WKSDK.shared().config.uid = this.loginInfo.user_uid; // 用户uid（需要在悟空通讯端注册过）
+				WKSDK.shared().config.token = this.loginInfo.token; // 用户token （需要在悟空通讯端注册过）
+				// 获取im连接地址
+				WKSDK.shared().config.provider.connectAddrCallback = async (callback) => {
+					if (!this.wsaddrs || this.wsaddrs.length == 0) {
+						this.wsaddrs = await this.getWsaddrs()
+					}
+					if (this.wsaddrs.length > 0) {
+						// console.log("connectAddrs--->", this.wsaddrs)
+						this.addrUsed = true
+						callback(this.wsaddrs[0])
+					}
+				}
+				// 连接
+				WKSDK.shared().connectManager.connect();
+				// 连接状态监听
+				WKSDK.shared().connectManager.addConnectStatusListener(
+					(status, reasonCode) => {
+						if (status === ConnectStatus.Connected) {
+							console.log('连接成功');
+						} else if (status === ConnectStatus.Disconnect) {
+							if (this.addrUsed && this.wsaddrs.length > 1) {
+								const oldwsAddr = this.wsaddrs[0]
+								this.wsaddrs.splice(0, 1)
+								this.wsaddrs.push(oldwsAddr)
+								this.addrUsed = false
+								console.log("连接失败！切换地址->", this.wsaddrs)
+							}
+						} else {
+							console.log('连接失败', reasonCode); //  reasonCode: 2表示认证失败（uid或token错误）
+						}
+					},
+				);
+				// 消息发送状态监听
+				WKSDK.shared().chatManager.addMessageStatusListener((packet) => {
+					// console.log('消息clientSeq->', packet.clientSeq); // 客户端序号用来匹配对应的发送的消息
+					// if (packet.reasonCode === 1) {
+					// 	// 发送成功
+					// 	console.log("发送成功")
+					// } else {
+					// 	// 发送失败
+					// 	console.log("发送失败")
+					// }
+				});
+				// 消息监听
+				WKSDK.shared().chatManager.addMessageListener((message) => {
+					// console.log(message)
+					//只接收个人频道的消息
+					if (message.channel.channelType !== ChannelTypePerson) return;
+					this.massageStore.push(message)
+					//缓存至本地: 1.先读取，再写入
+					this.saveCacheMessages(this.massageStore);
+					//消息提醒
+					this.messageNotification(message)
+				});
+				// 提供频道内消息同步的数据源
+				WKSDK.shared().config.provider.syncMessagesCallback = async (channel, opts) => {
+					// 后端提供的获取某个频道的消息列表的接口数据，然后构建成Message对象数组返回
+					return this.getCacheMessages();
+				}
+				//加载聊天记录
+				this.loadChatRecod();
+			},
+			loadChatRecod(callback) {
+				const _this = this
+				if (!this.isloadrecod) {
+					this.isloadrecod = true;
+					const messages = this.getCacheMessages();
+					this.massageStore.push(...messages);
+				}
+			},
+			//发送message
+			sendMessage(message) {
+				WKSDK.shared().chatManager.send(message, new Channel(this.loginInfo.kefu_uid, ChannelTypePerson))
+			},
 			//用户登录
-			async VisitorLogin() {
-				let info = getApp().globalData.visitor
-				try{
-					
-				}catch(e){
+			async visitorLogin() {
+				const cacheValue = localStorage.getItem("loginInfo")
+				let loginInfo = null
+				try {
+					loginInfo = JSON.parse(cacheValue)
+				} catch (e) {
 					//TODO handle the exception
 				}
-				await axios.post("http://localhost:81/visitor_login", { visitor_id: info.visitor_id, refer: info.refer, to_id: info.to_id, extra: info.extra }).then((resp)=>{
-					console.log(resp);
-					//每次请求完都要重新设置一下用户信息
-				}).catch((err)=>{
-					console.log(err);
-				});
-				
-				getApp().globalData.visitor = info;
-				// console.log(info);
+
+				const _this = this
+				return axios.post(`${getApp().globalData.apiUrl}/visitor/login`, {
+						"platform": window.navigator.platform,
+						"referer": window.location.href,
+						"projectUuid": window.projectUuid,
+						"token": loginInfo?.token || "",
+					})
+					.then(function(response) {
+						_this.loginInfo = response.data;
+						localStorage.setItem("loginInfo", JSON.stringify(response.data));
+						getApp().globalData.chatUid = response.data?.user_uid || ""
+						return response.data
+					})
+					.catch(function(error) {
+						console.log(error);
+					});
+			},
+			async getWsaddrs() {
+				// if (!this.loginInfo || !this.loginInfo.uuid) return [];
+				return axios.get(`${getApp().globalData.apiUrl}/users/${this.loginInfo.uuid}/im`).then(resp => {
+					const data = resp.data
+					let addr = data.wss_addr
+					if (!addr || addr === '') {
+						addr = data.ws_addr
+					}
+					return [addr]
+				})
+			},
+			getCacheMessages() {
+				const key = "chatonlineMessages";
+				const messagesText = localStorage.getItem(key);
+				let messages = [];
+				try {
+					messages = JSON.parse(messagesText);
+				} catch (e) {
+					//TODO handle the exception
+				} finally {
+					if (!Array.isArray(messages)) {
+						localStorage.removeItem(key);
+						messages = [];
+					}
+				}
+				return messages;
+			},
+			saveCacheMessages(messages) {
+				const messagesText = JSON.stringify(messages);
+				const key = "chatonlineMessages";
+				localStorage.setItem(key, messagesText);
 			},
 			showChattoolright: function() {
 				this.style.display = "";
@@ -235,21 +406,12 @@
 				}
 			},
 			submitMsg(event) {
-				let messagetxt = this.inputContext.trim();
+				let text = this.inputContext.trim();
 				this.inputContext = "";
-				if (messagetxt.length === 0) {
+				if (text.length === 0) {
 					return;
 				}
-				const msg = {
-					_id: nanoid(),
-					state: 0,
-					timestamp: new Date().getTime(),
-					contentType: 0,
-					content: messagetxt,
-					isSelf: true,
-					error: "",
-				};
-				this.dataList.push(msg);
+				this.sendMessage(new MessageText(text));
 				this.holdFocus = true; //保持聚焦
 				this.isFocus = true;
 				this.oninput();
@@ -260,18 +422,31 @@
 				//防止阻止系统默认(行为)，主要是为了阻止onblur事件
 				event && event.preventDefault && event.preventDefault();
 			},
-			doSend(e) {
-				if (e.ctrlKey && e.keyCode === 13) {
-					//用户点击了ctrl+enter触发
+			// doSend(e) {
+			// 	if (e.ctrlKey && e.keyCode === 13) {
+			// 		//用户点击了ctrl+enter触发
+			// 		this.inputContext += '\n';
+			// 	} else if (e.shiftKey && e.keyCode === 13) {
+			// 		//shift+enter组合
+			// 		this.inputContext += '\n';
+			// 	} else {
+			// 		//用户点击了enter触发    执行一些逻辑方法
+			// 		if (e !== undefined) {
+			// 			//发送消息的方法
+			// 			this.submitMsg();
+			// 			// 阻止浏览器默认的敲击回车换行的方法
+			// 			e.preventDefault && e.preventDefault();
+			// 		}
+			// 	}
+			// },
+			handleKeyDown(event) {
+				if (event.shiftKey && event.keyCode === 13) {
+					// 按下 Shift+Enter，添加换行符
 					this.inputContext += '\n';
-				} else {
-					//用户点击了enter触发    执行一些逻辑方法
-					if (e !== undefined) {
-						//发送消息的方法
-						this.submitMsg();
-						// 阻止浏览器默认的敲击回车换行的方法
-						e.preventDefault && e.preventDefault();
-					}
+				} else if (!event.shiftKey && event.keyCode === 13) {
+					// 按下 Enter，发送消息
+					event.preventDefault(); // 阻止默认的换行行为
+					this.submitMsg(event);
 				}
 			},
 			scrollBottom(animation = false) {
@@ -291,42 +466,12 @@
 				if (!chatinputtxtE) return;
 				chatinputtxtE.scrollTo(0, 10000);
 			},
-			initData() {
-				const firstMsg = {
-					_id: nanoid(),
-					state: 0, //0-未读，1-已读
-					timestamp: new Date().getTime(), //时间戳
-					content: "你好！我是Anna老師，請問有什麼可以幫您？ \n皺紋問題請回 1 \n色斑問題請回 2 \n眼袋問題請回 3 \n其它肌膚問題請回 4", //内容
-					contentType: 0, //消息類型
-					isSelf: false, //发件人
-					error: "",
-				};
-				const data = [];
-				for (let i = 0; i < 1; i++) {
-					const msg = JSON.parse(JSON.stringify(firstMsg));
-					msg._id = nanoid();
-					data.push(msg);
-				}
-				const selfMsg = {
-					_id: nanoid(),
-					state: 0, //0-未读，1-已读
-					timestamp: new Date().getTime(), //时间戳
-					content: "你好！\n 人工客服", //内容
-					contentType: 0, //消息類型
-					isSelf: true, //发件人
-					error: "",
-				};
-				
-				selfMsg.content = JSON.stringify(getApp().globalData.device.summary);
-				data.push(selfMsg);
-				this.dataList = data;
-			},
 			isShowDate(currentIndex) {
 				const lastIndex = currentIndex - 1;
 				if (lastIndex < 0) return true;
-				const lastMsg = this.dataList[lastIndex];
+				const lastMsg = this.massageStore[lastIndex];
 				if (!lastMsg) return true;
-				const currentMsg = this.dataList[currentIndex];
+				const currentMsg = this.massageStore[currentIndex];
 				if (!currentMsg) return true;
 				if (!lastMsg.timestamp || !currentMsg.timestamp) return true;
 				return !isSameDay(lastMsg.timestamp, currentMsg.timestamp);
@@ -351,6 +496,24 @@
 				});
 				event && event.preventDefault && event.preventDefault();
 			},
+			warnMessage(msg) {
+				if (!msg) return
+				this.$refs.alertmsgRef.open({
+					type: 'warn',
+					content: msg,
+					timeout: 1000,
+					isClick: false
+				});
+			},
+			errorMessage(msg) {
+				if (!msg) return
+				this.$refs.alertmsgRef.open({
+					type: 'err',
+					content: msg,
+					timeout: 1000,
+					isClick: false
+				});
+			},
 			getChatinputboxHeight() {
 				let height = 34
 				uni.createSelectorQuery().in(this).select(".chatinputbox").boundingClientRect(data => {
@@ -361,70 +524,22 @@
 			getWindowWidth() {
 				let getWindowInfo = uni.getWindowInfo();
 				return getWindowInfo.windowWidth
-			}
-		},
-		//获取当前用户信息
-		getUserInfo: function() {
-			let obj = this.getCache("visitor");
-			var visitor_id = ""
-			var to_id = KEFU_ID;
-			if (obj) {
-				visitor_id = obj.visitor_id;
-				//to_id=obj.to_id;
-			}
-			let _this = this;
-			var extra = getQuery("extra");
-			//发送消息
-			$.post("/visitor_login", {
-				visitor_id: visitor_id,
-				refer: REFER,
-				to_id: to_id,
-				extra: extra
-			}, function(res) {
-				if (res.code != 200) {
-					_this.$message({
-						message: res.msg,
-						type: 'error'
-					});
-					_this.sendDisabled = true;
-					return;
+			},
+			messageNotification(message){
+				//todo: 监听是否处于当前窗口
+				if(this.unreadMsgCount < 1){
+					uni.removeTabBarBadge({
+						index: 3
+					})
+					return
 				}
-				_this.visitor = res.result;
-				_this.setCache("visitor", res.result);
-				//_this.getMesssagesByVisitorId();
-				_this.initConn();
-			});
+				uni.setTabBarBadge({
+					index: 3,
+					text: this.unreadMsgCount+""
+				})
+				
+			}
 		},
-	}
-
-	function messageContentHandle(str) {
-		let arr = new Array();
-		for (let i = 0; i < str.length; i++) {
-			arr[i] = htmlEscape(str[i]);
-		}
-		let result = arr.join("");
-		result = trim(result);
-		result = result.replace(/\r\n/g, "<br>");
-		result = result.replace(/\n/g, "<br>");
-		result = result.replace(/(\r\n)|(\n)/g, '<br>');
-		result = result.replace(/\s/g, "&nbsp;");
-		arr = null;
-		return result;
-	}
-
-	function htmlEscape(text) {
-		switch (text) {
-			case "<":
-				return "&lt;";
-			case ">":
-				return "&gt;";
-			case "&":
-				return "&amp;";
-			case "\"":
-				return "&quot;";
-			default:
-				return text;
-		}
 	}
 
 
@@ -473,6 +588,8 @@
 	page {
 		height: 100%;
 		min-height: 100%;
+		overflow-y: auto;
+		overflow-x: hidden;
 	}
 
 	* {
@@ -482,6 +599,13 @@
 	.consultcontainer {
 		height: 100%;
 		min-height: 100%;
+		width: 100%;
+	}
+
+	@media screen and (min-width: 768px) {
+		page {
+			max-width: 450px;
+		}
 	}
 
 	.consultcontent {

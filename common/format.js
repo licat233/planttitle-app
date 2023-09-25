@@ -34,9 +34,9 @@ function formatDateTime(date) {
 
 // 日期格式化为周几
 function formatWeek(date) {
-	const thisDay =  new Date(date).getDay()
-	const weekDay = ['周日','周一','周二', '周三', '周四', '周五', '周六']  
-    //注意getDay()的结果区间为0至6，0表示周日
+	const thisDay = new Date(date).getDay()
+	const weekDay = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+	//注意getDay()的结果区间为0至6，0表示周日
 	return weekDay[thisDay]
 }
 
@@ -51,7 +51,7 @@ function getYesterday() {
 	const year = date.getFullYear()
 	const month = date.getMonth()
 	const day = date.getDate()
-	return formatDate(new Date(year,month,day-1))
+	return formatDate(new Date(year, month, day - 1))
 }
 
 // 获取本周开始和结束日期: [yyyy-MM-dd, yyyy-MM-dd]
@@ -64,12 +64,12 @@ function getThisWeek() {
 	const day = date.getDate()
 	const week = date.getDay()
 	// 3.获取本周开始日期并格式化为yyyy-MM-dd格式
-	const thisWeekStartDate = formatDate(new Date(year,month,day-week+1))  
-    // 若本周开始日期为上月月底日期也无需担心，如new Date()中的参数为2022,3,-3,则此条语句会输出2022-03-28
+	const thisWeekStartDate = formatDate(new Date(year, month, day - week + 1))
+	// 若本周开始日期为上月月底日期也无需担心，如new Date()中的参数为2022,3,-3,则此条语句会输出2022-03-28
 	// 4.获取本周结束日期并格式化为yyyy-MM-dd格式
-	const thisWeekEndDate = formatDate(new Date(year,month,day-week+7))
+	const thisWeekEndDate = formatDate(new Date(year, month, day - week + 7))
 	const thisWeek = []
-	thisWeek.push(thisWeekStartDate,thisWeekEndDate)
+	thisWeek.push(thisWeekStartDate, thisWeekEndDate)
 	// 5.返回结果
 	return thisWeek
 }
@@ -81,10 +81,10 @@ function getLastWeek() {
 	const month = date.getMonth()
 	const day = date.getDate()
 	const week = date.getDay()
-	const lastWeekStartDate = formatDate(new Date(year,month,day-week-6))
-	const lastWeekEndDate = formatDate(new Date(year,month,day-week))
+	const lastWeekStartDate = formatDate(new Date(year, month, day - week - 6))
+	const lastWeekEndDate = formatDate(new Date(year, month, day - week))
 	const lastWeek = []
-	lastWeek.push(lastWeekStartDate,lastWeekEndDate)
+	lastWeek.push(lastWeekStartDate, lastWeekEndDate)
 	return lastWeek
 }
 
@@ -93,11 +93,11 @@ function getThisMonth() {
 	const date = new Date()
 	const year = date.getFullYear()
 	const month = date.getMonth()
-	const thisMonthStartDate = formatDate(new Date(year,month,1))
-	const thisMonthEndDate = formatDate(new Date(year,month+1,0)) 
-    // 下个月第0天表示本月最后一天
+	const thisMonthStartDate = formatDate(new Date(year, month, 1))
+	const thisMonthEndDate = formatDate(new Date(year, month + 1, 0))
+	// 下个月第0天表示本月最后一天
 	const thisMonth = []
-	thisMonth.push(thisMonthStartDate,thisMonthEndDate)
+	thisMonth.push(thisMonthStartDate, thisMonthEndDate)
 	return thisMonth
 }
 
@@ -106,15 +106,38 @@ function getLastMonth() {
 	const date = new Date()
 	const year = date.getFullYear()
 	const month = date.getMonth()
-	const lastMonthStartDate = formatDate(new Date(year,month-1,1))
-	const lastMonthEndDate = formatDate(new Date(year,month,0)) 
-    //本月第0天表示上个月最后一天
+	const lastMonthStartDate = formatDate(new Date(year, month - 1, 1))
+	const lastMonthEndDate = formatDate(new Date(year, month, 0))
+	//本月第0天表示上个月最后一天
 	const lastMonth = []
-	lastMonth.push(lastMonthStartDate,lastMonthEndDate)
+	lastMonth.push(lastMonthStartDate, lastMonthEndDate)
 	return lastMonth
 }
 
-module.exports = {
+//格式化时间戳
+function formatTimestamp(timestamp) {
+	let date;
+	if (timestamp) {
+		date = new Date(timestamp);
+	} else {
+		date = new Date();
+	}
+
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, '0');
+	const day = String(date.getDate()).padStart(2, '0');
+
+	const hours = String(date.getHours()).padStart(2, '0');
+	const minutes = String(date.getMinutes()).padStart(2, '0');
+	const seconds = String(date.getSeconds()).padStart(2, '0');
+
+	const formattedTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
+	return formattedTime;
+}
+
+
+export {
 	formatDate,
 	formatDateTime,
 	formatWeek,
@@ -124,4 +147,5 @@ module.exports = {
 	getLastWeek,
 	getThisMonth,
 	getLastMonth,
+	formatTimestamp
 }

@@ -204,6 +204,10 @@ function makeMap(str) {
 }
 
 function removeDOCTYPE(html) {
+  if(typeof html !== "string") {
+	  console.error("html is not a string type")
+	  return "";
+  }
   return html.replace(/<\?xml.*\?>\n/, '').replace(/<!doctype.*>\n/, '').replace(/<!DOCTYPE.*>\n/, '');
 }
 

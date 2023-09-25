@@ -1,0 +1,164 @@
+<template>
+	<view class="messagecontent">
+		<!-- 文本 -->
+		<template v-if="contentType === 1">
+			<template v-if="msg.self">
+				<view class="textarea">{{messageTextContent}}</view>
+			</template>
+			<template v-else>
+				<view class="textarea" v-html="messageTextContent"></view>
+			</template>
+		</template>
+		<!-- 图片 -->
+		<template v-else-if="contentType === 2">
+			<view class="picture" @tap="onImage(msg)">
+				<image lazy-load={true} fade-show={true} mode="widthFix" :src="url" />
+			</view>
+		</template>
+		<!-- 表情 -->
+		<!-- 		<template v-else-if="msg.contentType == 2">
+			<view class="wrap emoji">
+				<image :src="msg.content" mode="aspectFit" />
+			</view>
+		</template> -->
+		<!-- 视频 -->
+		<!-- <template v-else-if="msg.contentType == 3">
+			<view class="video" @tap="onVideo(msg)">
+				<image :src="videoPoster(msg.content, [0, 300])" mode="aspectFill" />
+				<text class="cl-icon-play"></text>
+			</view>
+		</template> -->
+		<!-- 錯誤 -->
+		<!-- <view class="error" v-if="msg.contentType == 4">
+			<text class="cl-icon-warning-border"></text>
+			{{ msg.content }}
+		</view> -->
+	</view>
+</template>
+
+<script>
+	import { joinPath } from "@/common/util.js";
+	export default {
+		props: {
+			msg: {
+				type: Object,
+				default: null
+			},
+			msgList: {
+				type: Array,
+				default: [],
+			}
+		},
+		data() {
+			return {
+				contentType: this.getContentType(),
+				isSelf: this.getMsgFrom(),
+				messageTextContent: this.messageTextContentHandle(),
+				url: this.getImageSrc(this.msg?.content),
+			}
+		},
+		mounted() {
+		},
+		methods: {
+			getContentType() {
+				if (typeof this.msg.content._contentType === "undefined") return 1
+				return this.msg.content._contentType
+			},
+			getMsgFrom() {
+				return this.msg.fromUID === getApp().globalData.chatUid || this.msg.channel.channelID === this.msg.fromUID
+			},
+			messageTextContentHandle() {
+				let msg = this.msg || {};
+				let content = msg.content.text || msg.content.contentObj.text || "";
+				let res = decodeURIComponent(content);
+
+				if (this.getMsgFrom()) {
+					//拒绝解析客户自己发送的html代码
+					return res;
+				}
+				res = res.replaceAll("\\n", "<br/>").replaceAll("\\r", "<br/>")
+
+				let divE = document.createElement("div");
+				// console.log(res)
+				divE.innerHTML = res
+				let listE = divE.querySelectorAll("a");
+				listE.forEach(aE => {
+					aE.setAttribute("target", "_blank");
+				});
+				let code = divE.innerHTML
+
+				return code;
+			},
+			getImageSrc(msgContent) {
+				let content = msgContent?.contentObj
+				if (!content) return '';
+				let path = content.url
+				if (!path) {
+					if (!content.imgData) {
+						return '';
+					}
+					return content.imgData
+				}
+				if (path && path.length > 4) {
+					const prefix = path.substring(0, 4)
+					if (prefix === 'http') {
+						return path
+					}
+				}
+				const baseURl = getApp().globalData.apiUrl
+				return joinPath(baseURl, path)
+			},
+			getImageUrls() {
+				const urls = []
+				// console.log(this.msgList)
+				this.msgList.forEach((item) => {
+					const content = item.content
+					let contentType = content.realContentType || content._contentType || content.contentObj?.type
+					if (contentType == 2) {
+						const url = this.getImageSrc(content)
+						urls.push(url);
+					}
+				});
+				
+				return urls
+			},
+			onImage(msg) {
+				if(this.contentType !== 2) return
+				const urls = this.getImageUrls();
+				uni.previewImage({
+					current: urls.indexOf(this.msg.content?.contentObj?.url || ""),
+					urls: urls,
+				});
+			}
+		}
+	}
+</script>
+
+<style>
+	.messagecontent {
+		white-space: pre-wrap;
+		/* 保留换行符 */
+		user-select: auto;
+		-webkit-user-select: auto;
+		/* PC端  */
+		/*火狐*/
+		-moz-user-select: text;
+		/*chrome浏览器*/
+		-webkit-user-select: text;
+		/*IE10*/
+		-ms-user-select: text;
+		/*早期浏览器*/
+		-khtml-user-select: text;
+		user-select: text;
+		/* MB端 */
+		-webkit-touch-callout: text;
+		-webkit-user-select: text;
+		-khtml-user-select: text;
+		-moz-user-select: text;
+		-ms-user-select: text;
+		user-select: text;
+	}
+	.picture{
+		width: 80%;
+	}
+</style>

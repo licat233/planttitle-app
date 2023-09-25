@@ -5,11 +5,21 @@
 			"path": "pages/news/index",
 			"style": {
 				"navigationBarTitleText": "%news.title%",
-				"navigationStyle": "default"
+				"navigationStyle": "custom"
 			}
 		},
 		{
 		  "path": "pages/news/detail",
+		  "style": {
+		    "app-plus": {
+		      "titleNView": {
+		        "type": "transparent"
+		      }
+		    }
+		  }
+		},
+		{
+		  "path": "pages/news/ad",
 		  "style": {
 		    "app-plus": {
 		      "titleNView": {
@@ -28,12 +38,22 @@
 		    }
 		},
 		{
+		  "path": "pages/mall/detail",
+		  "style": {
+		    "app-plus": {
+		      "titleNView": {
+		        "type": "transparent"
+		      }
+		    }
+		  }
+		},
+		{
 		    "path" : "pages/campaign/index",
 		    "style" :                                                                                    
 		    {
 		        "navigationBarTitleText": "%campaign.title%",
 		        "enablePullDownRefresh": false,
-				"navigationStyle": "default"
+				"navigationStyle": "custom"
 		    }
 		}
         ,{
@@ -64,7 +84,7 @@
 	},
 	"tabBar": {
 		"borderStyle": "black",
-		"backgroundColor": "#f4f7e3",
+		"backgroundColor": "#f8fff9",
 		"color": "#8F8F94",
 		"selectedColor": "#7f00ca",
 		"blurEffect": "extralight",

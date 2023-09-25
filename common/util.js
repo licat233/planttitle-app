@@ -52,12 +52,21 @@ function friendlyDate(timestamp) {
 
 //根据时间戳，判断活期消息日期属于哪天：今天，昨天，9/27二
 function msgDate(timestamp) {
+	let n = (timestamp + "").length
+	if (n === 10) {
+		timestamp = timestamp * 1000
+	} else if (n === 16) {
+		timestamp = Math.round(timestamp / 1000)
+	}
 	let nowTimestamp = new Date().getTime();
 	let seconds = Math.floor((nowTimestamp - timestamp) / 1000);
 	let minutes = Math.floor(seconds / 60);
 	let hours = Math.floor(minutes / 60);
 	let durationDay = Math.floor(hours / 24);
-	if (durationDay < 0) throw Error("msg time error");
+	if (durationDay < 0) {
+		// console.warn("msg time error, timestamp: ", timestamp);
+		durationDay = 0
+	}
 	switch (durationDay) {
 		case 0:
 			return "今天"
@@ -65,7 +74,7 @@ function msgDate(timestamp) {
 			return "昨天"
 		default:
 			let targetTime = dayjs(timestamp);
-			let targetMonth = targetTime.month();
+			let targetMonth = targetTime.month() + 1;
 			let targetDate = targetTime.date();
 			let targetDay = targetTime.day();
 			let weekArrayList = ['日', '一', '二', '三', '四', '五', '六'];
@@ -252,6 +261,38 @@ function isMobile() {
 	return true
 };
 
+export const trimChar = (str, char) => {
+	while (str.charAt(0) === char) {
+		str = str.substring(1);
+	}
+
+	while (str.charAt(str.length - 1) === char) {
+		str = str.substring(0, str.length - 1);
+	}
+
+	return str;
+}
+
+export const joinPath = (basePath, ...parts) => {
+	const separator = '/';
+	const filteParts = [];
+	parts.forEach(part => {
+		part = part.trim();
+		if (part === "") return;
+		part = trimChar(part, separator);
+		filteParts.push(part);
+	});
+	if (filteParts.length === 0) return basePath;
+
+	if (basePath.charAt(basePath.length - 1) === separator) {
+		basePath = basePath.substring(0, basePath.length - 1);
+	}
+
+	filteParts.unshift(basePath)
+
+	return filteParts.join(separator);
+}
+
 export {
 	friendlyDate,
 	msgDate,
@@ -266,5 +307,5 @@ export {
 	switchFullScreen,
 	initFullScreen,
 	banDevtool,
-	isMobile
+	isMobile,
 }

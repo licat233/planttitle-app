@@ -1,0 +1,193 @@
+<template>
+	<view class="content">
+		<view class="article-content">
+			<!-- <iframe width="100%" height="100%" src="{{url}}"></iframe> -->
+			<web-view :src="url" class="adpage"></web-view>
+		</view>
+		<view class="comment-wrap"></view>
+	</view>
+</template>
+
+<script>
+	const FAIL_CONTENT = '<p>獲取信息失敗</p>';
+
+	function parseImgs(nodes) {
+		nodes.forEach(node => {
+			if (
+				node.name === 'img' &&
+				node.attrs &&
+				node.attrs['data-img-size-val']
+			) {
+				const sizes = node.attrs['data-img-size-val'].split(',')
+				const width = uni.upx2px(720 * 0.9)
+				const height = parseInt(width * (sizes[1] / sizes[0]))
+				node.attrs.style = `width:${width};height:${height};`
+			}
+			if (Array.isArray(node.children)) {
+				parseImgs(node.children)
+			}
+		})
+		return nodes
+	}
+
+	export default {
+		data() {
+			return {
+				ad: {},
+				content: [],
+				url: "",
+			}
+		},
+		onShareAppMessage() {
+			return {
+				title: this.ad.title,
+				path: '/pages/news/ad?query=' + JSON.stringify(this.ad)
+			}
+		},
+		onLoad(event) {
+			// 目前在某些平台参数会被主动 decode，暂时这样处理。
+			this.load(event.query);
+		},
+		methods: {
+			load(e) {
+				if (typeof e === "undefined") {
+					uni.switchTab({
+						url: "/pages/news/index"
+					})
+					return
+				}
+				let p = decodeURIComponent(e);
+				// console.log(p)
+				try {
+					this.ad = JSON.parse(p);
+				} catch (error) {
+					uni.switchTab({
+						url: "/pages/news/index",
+					})
+					return
+				}
+				uni.setNavigationBarTitle({
+					title: this.ad.title
+				});
+
+				this.url = this.ad.article_url;
+			},
+		},
+		mounted() {
+			uni.showTabBar();
+		}
+	}
+</script>
+
+<style>
+	/* #ifndef APP-PLUS */
+	page {
+		min-height: 100%;
+		height: 100%;
+		display: block;
+		height: calc(100% - var(--tab-bar-height));
+		height: calc(100% - var(--tab-bar-height) - constant(safe-area-inset-bottom));
+		height: calc(100% - var(--tab-bar-height) - env(safe-area-inset-bottom));
+	}
+
+	.adpage {
+		height: 100%;
+		min-height: 100%;
+		width: 100%;
+	}
+
+	/* #endif */
+
+	.content {
+		min-height: 100%;
+		height: 100%;
+	}
+	
+	.content uni-view {
+		position: static !important;
+	}
+
+	.title-area {
+		position: absolute;
+		left: 15px;
+		right: 15px;
+		bottom: 15px;
+		z-index: 11;
+		display: none;
+	}
+
+	.title-text {
+		font-size: 16px;
+		font-weight: 400;
+		line-height: 20px;
+		lines: 2;
+		color: #ffffff;
+		overflow: hidden;
+	}
+
+	.article-title {
+		padding: 10px 15px 0px;
+	}
+
+	.article-title-text {
+		font-size: 26px;
+	}
+
+
+	.article-meta {
+		padding: 10px 15px;
+		flex-direction: row;
+		align-items: center;
+		justify-content: flex-start;
+	}
+
+	.article-meta-text {
+		color: gray;
+	}
+
+	.article-text {
+		font-size: 12px;
+		line-height: 25px;
+		margin: 0 10px;
+	}
+
+	.article-author {
+		font-size: 15px;
+	}
+
+	.article-time {
+		font-size: 15px;
+	}
+
+	.article-content {
+		font-size: 15px;
+		/* padding: 0 15px; */
+		margin-bottom: 15px;
+		overflow: hidden;
+		height: 100%;
+		min-height: 100%;
+	}
+
+	.article-content::after {
+		content: "";
+		display: block;
+		height: calc(56px + env(safe-area-inset-bottom) + 15px);
+		width: 100%;
+		background: transparent;
+	}
+
+	/* #ifdef H5 */
+
+	.article-content {
+		line-height: 1.8;
+	}
+
+	.article-content img {
+		max-width: 100%;
+	}
+
+	/* #endif */
+	.content,.article-content {
+		position: inherit !important;
+	}
+</style>

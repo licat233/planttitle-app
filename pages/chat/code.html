@@ -2234,8 +2234,9 @@
 										setTimeout(function() {
 											document.querySelector(".saomiaocol").style
 												.display = "block";
-											let w = document.querySelector(
-													".previewcontent").offsetWidth -
+											let wEl = document.querySelector(".previewcontent");
+											if(!wEl) return;
+											let w = wEl.offsetWidth -
 												document.querySelector(".saomiaocol")
 												.offsetWidth / 2;
 											document.querySelector(".saomiaocol").style

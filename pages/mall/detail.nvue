@@ -1,0 +1,224 @@
+<template>
+	<view class="content">
+		<view class="article-content">
+			<!-- <iframe width="100%" height="100%" src="{{url}}"></iframe> -->
+			<web-view :src="url" class="webpage"></web-view>
+		</view>
+		<view class="comment-wrap"></view>
+	</view>
+</template>
+
+<script>
+	import htmlParser from '@/common/html-parser'
+
+	const FAIL_CONTENT = '<p>獲取信息失敗</p>';
+
+	function parseImgs(nodes) {
+		nodes.forEach(node => {
+			if (
+				node.name === 'img' &&
+				node.attrs &&
+				node.attrs['data-img-size-val']
+			) {
+				const sizes = node.attrs['data-img-size-val'].split(',')
+				const width = uni.upx2px(720 * 0.9)
+				const height = parseInt(width * (sizes[1] / sizes[0]))
+				node.attrs.style = `width:${width};height:${height};`
+			}
+			if (Array.isArray(node.children)) {
+				parseImgs(node.children)
+			}
+		})
+		return nodes
+	}
+
+	export default {
+		data() {
+			return {
+				goods: {},
+				content: [],
+				url: "",
+			}
+		},
+		onShareAppMessage() {
+			return {
+				title: this.goods.title,
+				path: '/pages/mall/detail?goods=' + JSON.stringify(this.goods)
+			}
+		},
+		onLoad(event) {
+			// 目前在某些平台参数会被主动 decode，暂时这样处理。
+			// console.log(query)
+			this.load(event.goods);
+		},
+		methods: {
+			load(e) {
+				if(typeof e === "undefined") {
+					uni.switchTab({
+						url: "/pages/mall/index"
+					})
+					return
+				}
+				let p = decodeURIComponent(e);
+				// console.log(p)
+				try {
+					this.goods = JSON.parse(p);
+				} catch (error) {
+					uni.switchTab({
+						url: "/pages/mall/index",
+					})
+					return
+				}
+
+				uni.setNavigationBarTitle({
+					title: this.goods.name
+				});
+
+				this.url = "https://www.planttitle.com/product/" + this.goods.id + ".html";
+
+				// this.getDetail();
+			},
+			// getDetail() {
+			// 	if (!this.goods.id) return console.error("goods id undefined")
+			// 	uni.request({
+			// 		url: "https://www.planttitle.com/product/" + this.goods.id + ".html",
+			// 		success: (result) => {
+			// 			let content = FAIL_CONTENT
+			// 			if (result.statusCode == 200) {
+			// 				content = result.data
+			// 			}
+			// 			// const nodes = htmlParser(content);
+			// 			// #ifdef APP-PLUS-NVUE
+			// 			parseImgs(content)
+			// 			// #endif
+			// 			this.content = content
+			// 		}
+			// 	});
+			// }
+		},
+		mounted() {
+			uni.showTabBar();
+		}
+	}
+</script>
+
+<style>
+	/* #ifndef APP-PLUS */
+	page {
+		min-height: 100%;
+		height: 100%;
+		display: block;
+		height: calc(100% - var(--tab-bar-height));
+		height: calc(100% - var(--tab-bar-height) - constant(safe-area-inset-bottom));
+		height: calc(100% - var(--tab-bar-height) - env(safe-area-inset-bottom));
+	}
+
+	.webpage {
+		height: 100%;
+		min-height: 100%;
+		width: 100%;
+	}
+
+	/* #endif */
+
+	.content {
+		min-height: 100%;
+		height: 100%;
+	}
+
+	.goods {
+		height: 180px;
+		position: relative;
+		background-color: #ccc;
+		flex-direction: row;
+		overflow: hidden;
+	}
+
+	.goods-img {
+		flex: 1;
+	}
+
+	.title-area {
+		position: absolute;
+		left: 15px;
+		right: 15px;
+		bottom: 15px;
+		z-index: 11;
+		display: none;
+	}
+
+	.title-text {
+		font-size: 16px;
+		font-weight: 400;
+		line-height: 20px;
+		lines: 2;
+		color: #ffffff;
+		overflow: hidden;
+	}
+
+	.article-title {
+		padding: 10px 15px 0px;
+	}
+
+	.article-title-text {
+		font-size: 26px;
+	}
+
+
+	.article-meta {
+		padding: 10px 15px;
+		flex-direction: row;
+		align-items: center;
+		justify-content: flex-start;
+	}
+
+	.article-meta-text {
+		color: gray;
+	}
+
+	.article-text {
+		font-size: 12px;
+		line-height: 25px;
+		margin: 0 10px;
+	}
+
+	.article-author {
+		font-size: 15px;
+	}
+
+	.article-time {
+		font-size: 15px;
+	}
+
+	.article-content {
+		font-size: 15px;
+		/* padding: 0 15px; */
+		margin-bottom: 15px;
+		overflow: hidden;
+		height: 100%;
+		min-height: 100%;
+	}
+
+	.article-content::after {
+		content: "";
+		display: block;
+		height: calc(56px + env(safe-area-inset-bottom) + 15px);
+		width: 100%;
+		background: transparent;
+	}
+
+	/* #ifdef H5 */
+
+	.article-content {
+		line-height: 1.8;
+	}
+
+	.article-content img {
+		max-width: 100%;
+	}
+
+	/* #endif */
+	.content,.article-content {
+		position: inherit !important;
+	}
+</style>

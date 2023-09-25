@@ -18,7 +18,7 @@
 		<view class="media-foot flex-row">
 			<view class="media-info flex-row">
 				<text class="info-text">{{newsItem.source}}</text>
-				<text class="info-text">{{newsItem.comment_count}}条评论</text>
+				<text class="info-text">{{newsItem.comment_count||0}}条评论</text>
 				<text class="info-text">{{newsItem.datetime}}</text>
 			</view>
 			<view class="close-view" @click.stop="close">

@@ -4,6 +4,9 @@
 		<list class="listview">
 			<refresh :display="refreshing" @refresh="onrefresh" @pullingdown="onpullingdown"></refresh>
 			<cell v-for="(item, index) in dataList" :key="item.id">
+				<template v-if="(index+1)%10===0">
+					<news-item :newsItem="aditem" @close="closeItem(-1)" @click="goDetail(aditem)"></news-item>
+				</template>
 				<news-item :newsItem="item" @close="closeItem(index)" @click="goDetail(item)"></news-item>
 			</cell>
 			<cell v-if="isLoading || dataList.length > 4">
@@ -16,6 +19,9 @@
 		<!-- #ifndef APP-NVUE -->
 		<scroll-view class="listview" style="flex: 1;" enableBackToTop="true" scroll-y @scrolltolower="loadMore()">
 			<view v-for="(item, index) in dataList" :key="item.id">
+				<template v-if="(index+1)%10===0">
+					<news-item :newsItem="aditem" @close="closeItem(-1)" @click="goDetail(aditem)"></news-item>
+				</template>
 				<news-item :newsItem="item" @close="closeItem(index)" @click="goDetail(item)"></news-item>
 			</view>
 			<view class="loading-more" v-if="isLoading || dataList.length > 4">
@@ -35,6 +41,7 @@
 	import newsItem from './news-item.nvue';
 	import uniLoadMore from '@/components/uni-load-more.vue';
 	import noData from '@/components/nodata.nvue';
+
 
 	export default {
 		components: {
@@ -57,7 +64,7 @@
 				refreshFlag: false,
 				refreshText: "",
 				isLoading: false,
-				loadingText: '加载中...',
+				loadingText: '加載中...',
 				isNoData: false,
 				pulling: false,
 				angle: 0,
@@ -66,7 +73,20 @@
 					contentrefresh: '',
 					contentnomore: ''
 				},
-				refreshIcon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAB5QTFRFcHBw3Nzct7e39vb2ycnJioqK7e3tpqam29vb////D8oK7wAAAAp0Uk5T////////////ALLMLM8AAABxSURBVHja7JVBDoAgDASrjqj//7CJBi90iyYeOHTPMwmFZrHjYyyFYYUy1bwUZqtJIYVxhf1a6u0R7iUvWsCcrEtwJHp8MwMdvh2amHduiZD3rpWId9+BgPd7Cc2LIkPyqvlQvKxKBJ//Qwq/CacAAwDUv0a0YuKhzgAAAABJRU5ErkJggg=="
+				refreshIcon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAB5QTFRFcHBw3Nzct7e39vb2ycnJioqK7e3tpqam29vb////D8oK7wAAAAp0Uk5T////////////ALLMLM8AAABxSURBVHja7JVBDoAgDASrjqj//7CJBi90iyYeOHTPMwmFZrHjYyyFYYUy1bwUZqtJIYVxhf1a6u0R7iUvWsCcrEtwJHp8MwMdvh2amHduiZD3rpWId9+BgPd7Cc2LIkPyqvlQvKxKBJ//Qwq/CacAAwDUv0a0YuKhzgAAAABJRU5ErkJggg==",
+				aditem: {
+					id: this.newGuid() + "-1",
+					newsid: -1,
+					article_type: -1, //廣告類型
+					datetime: friendlyDate(new Date("2023-09-23 09:41:04".replace(/\-/g, '/')).getTime()),
+					title: "我成功擺脫毛囊角化症啦！偶然發現絕妙方法，親測有效的方法分享給你們",
+					image_url: "https://img.alicdn.com/imgextra/i2/917298378/O1CN01j635bC2BlAwDppuwX_!!917298378.jpg",
+					source: "肌膚護理",
+					comment_count: "999+",
+					post_id: "-1",
+					// article_url: "https://www.twjpf.com",
+					article_url: "https://storage.newworkbench.com/%E9%9B%9E%E7%9A%AE%E8%86%9A/jpf503/index.html",
+				}
 			}
 		},
 		created() {
@@ -163,21 +183,36 @@
 				this.dataList.length = 0;
 				this.requestParams.minId = 0;
 			},
-			goDetail(detail) {
+			goDetail(item) {
 				if (this._isWidescreen) { //若为宽屏，则触发右侧详情页的自定义事件
-					uni.$emit('updateDetail', {
-						detail: encodeURIComponent(JSON.stringify(detail))
+					let eventName = 'articleDetail';
+					if(item.article_type === -1){
+						eventName = 'adDetail'
+					}
+					uni.$emit(eventName, {
+						detail: encodeURIComponent(JSON.stringify(item))
 					})
 					return
 				}
+				let query = encodeURIComponent(JSON.stringify(item))
+				let url = './detail?query=' + query
+				if(item.article_type === -1){
+					url = './ad?query='+query
+				}
 				uni.navigateTo({
-					url: './detail?query=' + encodeURIComponent(JSON.stringify(detail)),
+					url: url,
 					fail: (res) => {
 						// console.log(res.errMsg)
 					}
 				});
 			},
+			showAD(item) {
+				
+			},
 			closeItem(index) {
+				if(index<0){
+					return
+				}
 				uni.showModal({
 					content: '不感兴趣？',
 					success: (res) => {
@@ -216,7 +251,7 @@
 				this.pulling = false;
 				if (Math.abs(e.pullingDistance) > Math.abs(e.viewHeight)) {
 					this.refreshFlag = true;
-					this.refreshText = "释放立即刷新";
+					this.refreshText = "釋放立即刷新";
 				} else {
 					this.refreshFlag = false;
 					this.refreshText = "下拉可以刷新";

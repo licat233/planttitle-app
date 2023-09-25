@@ -1,1 +1,211 @@
-{"@platforms":["android","iPhone","iPad"],"id":"","name":"底部选项卡模板","version":{"name":"1.0.0","code":"100"},"description":"","launch_path":"","developer":{"name":"","email":"","url":""},"permissions":{"UniNView":{"description":"UniNView原生渲染"}},"plus":{"useragent":{"value":"uni-app","concatenate":true},"splashscreen":{"target":"id:1","autoclose":true,"waiting":true,"delay":0},"popGesture":"close","launchwebview":{"id":"1","kernel":"WKWebview","uniNView":{"path":"pages/tabbar/tabbar-1/news/index.js"}},"statusbar":{"immersed":"supportedDevice","style":"dark","background":"#F8F8F8"},"usingComponents":true,"compilerVersion":3,"distribute":{"google":{"permissions":["<uses-permission android:name=\"android.permission.CHANGE_NETWORK_STATE\"/>","<uses-permission android:name=\"android.permission.MOUNT_UNMOUNT_FILESYSTEMS\"/>","<uses-permission android:name=\"android.permission.VIBRATE\"/>","<uses-permission android:name=\"android.permission.READ_LOGS\"/>","<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>","<uses-feature android:name=\"android.hardware.camera.autofocus\"/>","<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>","<uses-permission android:name=\"android.permission.CAMERA\"/>","<uses-permission android:name=\"android.permission.GET_ACCOUNTS\"/>","<uses-permission android:name=\"android.permission.READ_PHONE_STATE\"/>","<uses-permission android:name=\"android.permission.CHANGE_WIFI_STATE\"/>","<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>","<uses-permission android:name=\"android.permission.FLASHLIGHT\"/>","<uses-feature android:name=\"android.hardware.camera\"/>","<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>"]},"apple":{},"plugins":{"audio":{"mp3":{"description":"Android平台录音支持MP3格式文件"}}}},"allowsInlineMediaPlayback":true,"safearea":{"background":"#333","bottom":{"offset":"auto"}},"uni-app":{"compilerVersion":"3.6.4","control":"uni-v3","nvueCompiler":"uni-app","renderer":"auto","nvue":{"flex-direction":"column"},"nvueLaunchMode":"normal"},"tabBar":{"borderStyle":"rgba(0,0,0,0.4)","backgroundColor":"#333","color":"#8F8F94","selectedColor":"#f33e54","list":[{"pagePath":"pages/tabbar/tabbar-1/tabbar-1","iconPath":"static/img/tabbar/home.png","selectedIconPath":"static/img/tabbar/homeactive.png","text":"首页"},{"pagePath":"pages/tabbar/tabbar-2/tabbar-2","iconPath":"static/img/tabbar/guanzhu.png","selectedIconPath":"static/img/tabbar/guanzhuactive.png","text":"关注"},{"pagePath":"pages/tabbar/tabbar-3/tabbar-3","iconPath":"static/img/tabbar/add.png","selectedIconPath":"static/img/tabbar/addactive.png"},{"pagePath":"pages/tabbar/tabbar-4/tabbar-4","iconPath":"static/img/tabbar/news.png","selectedIconPath":"static/img/tabbar/newsactive.png","text":"消息"},{"pagePath":"pages/tabbar/tabbar-5/tabbar-5","iconPath":"static/img/tabbar/me.png","selectedIconPath":"static/img/tabbar/meactive.png","text":"我"}],"height":"50px"}}}
+{
+  "@platforms": [
+    "android",
+    "iPhone",
+    "iPad"
+  ],
+  "id": "__UNI__EDAFC3D",
+  "name": "planttitle",
+  "version": {
+    "name": "1.0.0",
+    "code": "100"
+  },
+  "description": "",
+  "developer": {
+    "name": "",
+    "email": "",
+    "url": ""
+  },
+  "permissions": {
+    "UniNView": {
+      "description": "UniNView原生渲染"
+    }
+  },
+  "plus": {
+    "useragent": {
+      "value": "uni-app",
+      "concatenate": true
+    },
+    "splashscreen": {
+      "target": "id:1",
+      "autoclose": true,
+      "waiting": true,
+      "delay": 0
+    },
+    "popGesture": "close",
+    "launchwebview": {
+      "id": "1",
+      "kernel": "WKWebview",
+      "uniNView": {
+        "path": "pages/news/index.js"
+      }
+    },
+    "usingComponents": true,
+    "compilerVersion": 3,
+    "distribute": {
+      "icons": {
+        "android": {
+          "hdpi": "unpackage/res/icons/72x72.png",
+          "xhdpi": "unpackage/res/icons/96x96.png",
+          "xxhdpi": "unpackage/res/icons/144x144.png",
+          "xxxhdpi": "unpackage/res/icons/192x192.png"
+        },
+        "ios": {
+          "appstore": "unpackage/res/icons/1024x1024.png",
+          "ipad": {
+            "app": "unpackage/res/icons/76x76.png",
+            "app@2x": "unpackage/res/icons/152x152.png",
+            "notification": "unpackage/res/icons/20x20.png",
+            "notification@2x": "unpackage/res/icons/40x40.png",
+            "proapp@2x": "unpackage/res/icons/167x167.png",
+            "settings": "unpackage/res/icons/29x29.png",
+            "settings@2x": "unpackage/res/icons/58x58.png",
+            "spotlight": "unpackage/res/icons/40x40.png",
+            "spotlight@2x": "unpackage/res/icons/80x80.png"
+          },
+          "iphone": {
+            "app@2x": "unpackage/res/icons/120x120.png",
+            "app@3x": "unpackage/res/icons/180x180.png",
+            "notification@2x": "unpackage/res/icons/40x40.png",
+            "notification@3x": "unpackage/res/icons/60x60.png",
+            "settings@2x": "unpackage/res/icons/58x58.png",
+            "settings@3x": "unpackage/res/icons/87x87.png",
+            "spotlight@2x": "unpackage/res/icons/80x80.png",
+            "spotlight@3x": "unpackage/res/icons/120x120.png"
+          }
+        }
+      },
+      "google": {
+        "permissions": [
+          "<uses-permission android:name=\"android.permission.CHANGE_NETWORK_STATE\"/>",
+          "<uses-permission android:name=\"android.permission.MOUNT_UNMOUNT_FILESYSTEMS\"/>",
+          "<uses-permission android:name=\"android.permission.VIBRATE\"/>",
+          "<uses-permission android:name=\"android.permission.READ_LOGS\"/>",
+          "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
+          "<uses-feature android:name=\"android.hardware.camera.autofocus\"/>",
+          "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+          "<uses-permission android:name=\"android.permission.CAMERA\"/>",
+          "<uses-permission android:name=\"android.permission.GET_ACCOUNTS\"/>",
+          "<uses-permission android:name=\"android.permission.READ_PHONE_STATE\"/>",
+          "<uses-permission android:name=\"android.permission.CHANGE_WIFI_STATE\"/>",
+          "<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>",
+          "<uses-permission android:name=\"android.permission.FLASHLIGHT\"/>",
+          "<uses-feature android:name=\"android.hardware.camera\"/>",
+          "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>"
+        ],
+        "abiFilters": [
+          "armeabi-v7a",
+          "arm64-v8a"
+        ],
+        "autoSdkPermissions": true
+      },
+      "apple": {},
+      "plugins": {
+        "audio": {
+          "mp3": {
+            "description": "Android平台录音支持MP3格式文件"
+          }
+        }
+      }
+    },
+    "error": {
+      "url": "hybrid/html/error.html"
+    },
+    "statusbar": {
+      "immersed": "supportedDevice",
+      "style": "light",
+      "background": "#78bc15"
+    },
+    "uniStatistics": {
+      "version": "2",
+      "debug": false
+    },
+    "allowsInlineMediaPlayback": true,
+    "safearea": {
+      "background": "#f8fff9",
+      "bottom": {
+        "offset": "auto"
+      }
+    },
+    "uni-app": {
+      "control": "uni-v3",
+      "vueVersion": "3",
+      "compilerVersion": "3.8.12",
+      "nvueCompiler": "uni-app",
+      "renderer": "auto",
+      "nvue": {
+        "flex-direction": "column"
+      },
+      "nvueLaunchMode": "normal",
+      "webView": {
+        "minUserAgentVersion": "49.0"
+      }
+    },
+    "tabBar": {
+      "position": "bottom",
+      "color": "#8F8F94",
+      "selectedColor": "#7f00ca",
+      "borderStyle": "rgba(0,0,0,0.4)",
+      "blurEffect": "extralight",
+      "fontSize": "10px",
+      "iconWidth": "24px",
+      "spacing": "3px",
+      "height": "56px",
+      "backgroundColor": "#f8fff9",
+      "list": [
+        {
+          "pagePath": "pages/news/index",
+          "iconPath": "/static/icon/tabbar/news.png",
+          "selectedIconPath": "/static/icon/tabbar/news_active.png",
+          "text": "新聞資訊",
+          "textLocales": {
+            "zh-Hant": "新聞資訊",
+            "en": "news",
+            "zh-Hans": "新闻资讯"
+          }
+        },
+        {
+          "pagePath": "pages/mall/index",
+          "iconPath": "/static/icon/tabbar/gift.png",
+          "selectedIconPath": "/static/icon/tabbar/gift_active.png",
+          "text": "精品推薦",
+          "textLocales": {
+            "zh-Hant": "精品推薦",
+            "en": "mall",
+            "zh-Hans": "精品推荐"
+          }
+        },
+        {
+          "pagePath": "pages/campaign/index",
+          "iconPath": "/static/icon/tabbar/activity.png",
+          "selectedIconPath": "/static/icon/tabbar/activity_active.png",
+          "text": "限時活動",
+          "textLocales": {
+            "zh-Hant": "限時活動",
+            "en": "campaign",
+            "zh-Hans": "限时活动"
+          }
+        },
+        {
+          "pagePath": "pages/chat/index",
+          "iconPath": "/static/icon/tabbar/consulation.png",
+          "selectedIconPath": "/static/icon/tabbar/consulation_active.png",
+          "text": "在線客服",
+          "textLocales": {
+            "zh-Hant": "在線客服",
+            "en": "consult",
+            "zh-Hans": "在线客服"
+          }
+        }
+      ],
+      "selectedIndex": 0,
+      "shown": true,
+      "child": [
+        "lauchwebview"
+      ],
+      "selected": 0
+    }
+  },
+  "locale": "zh-Hant",
+  "fallbackLocale": "zh-Hant"
+}
