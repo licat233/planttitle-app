@@ -102,10 +102,6 @@
 		min-height: 100%;
 		height: 100%;
 	}
-	
-	.content uni-view {
-		position: static !important;
-	}
 
 	.title-area {
 		position: absolute;

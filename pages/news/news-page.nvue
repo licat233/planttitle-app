@@ -4,9 +4,10 @@
 		<list class="listview">
 			<refresh :display="refreshing" @refresh="onrefresh" @pullingdown="onpullingdown"></refresh>
 			<cell v-for="(item, index) in dataList" :key="item.id">
-				<template v-if="(index+1)%10===0">
-					<news-item :newsItem="aditem" @close="closeItem(-1)" @click="goDetail(aditem)"></news-item>
-				</template>
+				<!-- <template v-if="(index+1)%10===0&&!!getAdItem(index)">
+					<news-item :newsItem="getAdItem(index)" @close="closeItem(-1)"
+						@click="goDetail(getAdItem(index))"></news-item>
+				</template> -->
 				<news-item :newsItem="item" @close="closeItem(index)" @click="goDetail(item)"></news-item>
 			</cell>
 			<cell v-if="isLoading || dataList.length > 4">
@@ -19,9 +20,10 @@
 		<!-- #ifndef APP-NVUE -->
 		<scroll-view class="listview" style="flex: 1;" enableBackToTop="true" scroll-y @scrolltolower="loadMore()">
 			<view v-for="(item, index) in dataList" :key="item.id">
-				<template v-if="(index+1)%10===0">
-					<news-item :newsItem="aditem" @close="closeItem(-1)" @click="goDetail(aditem)"></news-item>
-				</template>
+				<!-- <template v-if="(index+1)%10===0&&!!getAdItem(index)">
+					<news-item :newsItem="getAdItem(index)" @close="closeItem(-1)"
+						@click="goDetail(getAdItem(index))"></news-item>
+				</template> -->
 				<news-item :newsItem="item" @close="closeItem(index)" @click="goDetail(item)"></news-item>
 			</view>
 			<view class="loading-more" v-if="isLoading || dataList.length > 4">
@@ -35,8 +37,10 @@
 
 <script>
 	import {
-		friendlyDate
+		friendlyDate,
+		getTodayDate
 	} from '@/common/util.js';
+	import dayjs from "dayjs";
 
 	import newsItem from './news-item.nvue';
 	import uniLoadMore from '@/components/uni-load-more.vue';
@@ -74,19 +78,30 @@
 					contentnomore: ''
 				},
 				refreshIcon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAB5QTFRFcHBw3Nzct7e39vb2ycnJioqK7e3tpqam29vb////D8oK7wAAAAp0Uk5T////////////ALLMLM8AAABxSURBVHja7JVBDoAgDASrjqj//7CJBi90iyYeOHTPMwmFZrHjYyyFYYUy1bwUZqtJIYVxhf1a6u0R7iUvWsCcrEtwJHp8MwMdvh2amHduiZD3rpWId9+BgPd7Cc2LIkPyqvlQvKxKBJ//Qwq/CacAAwDUv0a0YuKhzgAAAABJRU5ErkJggg==",
-				aditem: {
+				adItems: [{
 					id: this.newGuid() + "-1",
 					newsid: -1,
 					article_type: -1, //廣告類型
-					datetime: friendlyDate(new Date("2023-09-23 09:41:04".replace(/\-/g, '/')).getTime()),
+					datetime: getTodayDate(),
 					title: "我成功擺脫毛囊角化症啦！偶然發現絕妙方法，親測有效的方法分享給你們",
 					image_url: "https://img.alicdn.com/imgextra/i2/917298378/O1CN01j635bC2BlAwDppuwX_!!917298378.jpg",
 					source: "肌膚護理",
 					comment_count: "999+",
 					post_id: "-1",
-					// article_url: "https://www.twjpf.com",
-					article_url: "https://storage.newworkbench.com/%E9%9B%9E%E7%9A%AE%E8%86%9A/jpf503/index.html",
-				}
+					article_url: "https://www.twjpf.com",
+				}, {
+					id: this.newGuid() + "-1",
+					newsid: -1,
+					article_type: -1, //廣告類型
+					datetime: getTodayDate(),
+					title: "揭秘：69歲女人不長斑，“返老還童”的秘密",
+					image_url: "https://img.alicdn.com/imgextra/i3/917298378/O1CN01Salypn2BlAw0fnqbp_!!917298378.jpg",
+					source: "頭條新聞",
+					comment_count: "999+",
+					post_id: "-1",
+					article_url: "https://www.irisiii.com/",
+				}, ],
+				lastAdIndex: 0,
 			}
 		},
 		created() {
@@ -127,21 +142,29 @@
 						let endTime = new Date();
 						const data = result.data;
 						this.isNoData = (data.length <= 0);
-
-						const data_list = data.map((news) => {
-							return {
+						let counter = this.dataList.length;
+						const data_list = [];
+						data.forEach(news=>{
+							counter++
+							if (counter%10===0){
+								const adItem = this.getAdItem();
+								data_list.push(adItem);
+							}
+							const item = {
 								id: this.newGuid() + news.id,
 								newsid: news.id,
 								article_type: 1,
-								datetime: friendlyDate(new Date(news.published_at.replace(/\-/g, '/'))
-									.getTime()),
+								datetime: dayjs(news.published_at).format(
+									'YYYY/MM/DD'
+								), //friendlyDate(new Date(news.published_at.replace(/\-/g, '/')).getTime()),
 								title: news.title,
 								image_url: news.cover,
 								source: news.author_name,
 								comment_count: news.comments_count,
 								post_id: news.post_id
-							};
-						});
+							}
+							data_list.push(item);
+						})
 
 						if (refresh) {
 							this.dataList = data_list;
@@ -165,7 +188,7 @@
 						if (refresh) {
 							this.refreshing = false;
 							this.refreshFlag = false;
-							this.refreshText = "已刷新";
+							this.refreshText = $t('common.refreshed');
 							if (this.pullTimer) {
 								clearTimeout(this.pullTimer);
 							}
@@ -186,7 +209,7 @@
 			goDetail(item) {
 				if (this._isWidescreen) { //若为宽屏，则触发右侧详情页的自定义事件
 					let eventName = 'articleDetail';
-					if(item.article_type === -1){
+					if (item.article_type === -1) {
 						eventName = 'adDetail'
 					}
 					uni.$emit(eventName, {
@@ -196,8 +219,8 @@
 				}
 				let query = encodeURIComponent(JSON.stringify(item))
 				let url = './detail?query=' + query
-				if(item.article_type === -1){
-					url = './ad?query='+query
+				if (item.article_type === -1) {
+					url = './ad?query=' + query
 				}
 				uni.navigateTo({
 					url: url,
@@ -206,20 +229,27 @@
 					}
 				});
 			},
-			showAD(item) {
-				
+			getAdItem() {
+				const n = this.adItems.length;
+				if (n === 0) return null;
+				const item = this.adItems[this.lastAdIndex];
+				this.lastAdIndex++
+				if (this.lastAdIndex === n) {
+					this.lastAdIndex = 0;
+				}
+				return item
 			},
 			closeItem(index) {
-				if(index<0){
+				if (index < 0) {
 					return
 				}
 				uni.showModal({
-					content: '不感兴趣？',
+					content: '不感興趣？',
 					success: (res) => {
 						if (res.confirm) {
 							this.dataList.splice(index, 1);
 						}
-					}
+					},
 				})
 			},
 			refreshData() {
@@ -228,7 +258,7 @@
 				}
 				this.pulling = true;
 				this.refreshing = true;
-				this.refreshText = "正在刷新...";
+				this.refreshText = $t('common.refreshing');
 				this.loadData(true);
 			},
 			onrefresh(e) {

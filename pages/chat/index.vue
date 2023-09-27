@@ -122,6 +122,7 @@
 		isSameDay,
 		msgTime,
 		msgDate,
+		showNotification
 	} from "@/common/util.js";
 	import {
 		formatTimestamp
@@ -217,6 +218,21 @@
 				this.inputContext = String(this.inputContext).slice(0, 800);
 			}
 		},
+		onLoad() {
+			if (!("Notification" in window)) {
+				console.log("This browser does not support notification functionality");
+			} else {
+				if (window.Notification.permission === "default" || window.Notification.permission === "denied") {
+					window.Notification.requestPermission().then(function(permission) {
+						if (permission === "granted") {
+							// 用户允许显示通知
+						} else if (permission === "denied") {
+							// 用户拒绝显示通知
+						}
+					});
+				}
+			}
+		},
 		methods: {
 			async startup() {
 				const data = await this.visitorLogin();
@@ -271,11 +287,12 @@
 					// console.log(message)
 					//只接收个人频道的消息
 					if (message.channel.channelType !== ChannelTypePerson) return;
-					this.massageStore.push(message)
+					this.massageStore.push(message);
 					//缓存至本地: 1.先读取，再写入
 					this.saveCacheMessages(this.massageStore);
 					//消息提醒
-					this.messageNotification(message)
+					this.messageNotification(message);
+					this.notifyMessage(message);
 				});
 				// 提供频道内消息同步的数据源
 				WKSDK.shared().config.provider.syncMessagesCallback = async (channel, opts) => {
@@ -293,12 +310,52 @@
 					this.massageStore.push(...messages);
 				}
 			},
+			notifyMessage(message) {
+				const isSelf = this.authMsgFromSelf(message);
+				if (isSelf) return
+
+				if (window.Notification.permission !== 'granted') return;
+				let content = "";
+				if (typeof this.msg?.contentType !== "number") return false
+				let contentType = this.msg.content.realContentType || this.msg.content._contentType || this.msg.content
+					?.contentObj?.type
+				switch (contentType) {
+					case 1, undefined:
+						//文本消息
+						let text = this.msg.content.text || this.msg.content?.contentObj?.content
+						if (typeof text !== "string") {
+							return false
+						}
+						text = text.trim()
+						if (text.length === 0) return false;
+						content = text
+					case 2:
+						//图片消息
+						let url = this.msg.content?.contentObj?.url
+						if (!url) return false
+						url = url + ""
+						if (url.trim().length === 0) return false
+						content = [圖片]
+					default:
+						//其它类型消息，暂不支持
+						return false
+				}
+				showNotification("新訊息", {
+					body: content,
+					icon: "/static/favicon.ico" // 可选的图标路径
+				}, () => {
+					uni.switchTab({
+						url: "/pages/chat/index",
+					})
+				});
+			},
 			//发送message
 			sendMessage(message) {
 				WKSDK.shared().chatManager.send(message, new Channel(this.loginInfo.kefu_uid, ChannelTypePerson))
 			},
 			//用户登录
 			async visitorLogin() {
+				if (!getApp().globalData.apiUrl) return
 				const cacheValue = localStorage.getItem("loginInfo")
 				let loginInfo = null
 				try {
@@ -355,6 +412,9 @@
 				const messagesText = JSON.stringify(messages);
 				const key = "chatonlineMessages";
 				localStorage.setItem(key, messagesText);
+			},
+			authMsgFromSelf(msg) {
+				return msg.fromUID === getApp().globalData.chatUid || msg.channel.channelID !== msg.fromUID
 			},
 			showChattoolright: function() {
 				this.style.display = "";
@@ -525,9 +585,9 @@
 				let getWindowInfo = uni.getWindowInfo();
 				return getWindowInfo.windowWidth
 			},
-			messageNotification(message){
+			messageNotification(message) {
 				//todo: 监听是否处于当前窗口
-				if(this.unreadMsgCount < 1){
+				if (this.unreadMsgCount < 1) {
 					uni.removeTabBarBadge({
 						index: 3
 					})
@@ -535,9 +595,9 @@
 				}
 				uni.setTabBarBadge({
 					index: 3,
-					text: this.unreadMsgCount+""
+					text: this.unreadMsgCount + ""
 				})
-				
+
 			}
 		},
 	}

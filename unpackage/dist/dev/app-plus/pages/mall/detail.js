@@ -63,15 +63,8 @@ if (typeof uni !== 'undefined' && uni && uni.requireGlobal) {
     }
   });
 
-  // ../../../../../../Users/licat/Desktop/project/planttitle-app/unpackage/dist/dev/.nvue/_plugin-vue_export-helper.js
+  // ../../../../../../Users/licat/Desktop/project/planttitle-app/unpackage/dist/dev/.nvue/uni-app.es.js
   var import_vue = __toESM(require_vue());
-  var _export_sfc = (sfc, props) => {
-    const target = sfc.__vccOpts || sfc;
-    for (const [key, val] of props) {
-      target[key] = val;
-    }
-    return target;
-  };
 
   // ../../../../../../Users/licat/Desktop/project/planttitle-app/unpackage/dist/dev/.nvue/html-parser.js
   var empty = makeMap("area,base,basefont,br,col,frame,hr,img,input,link,meta,param,embed,command,keygen,source,track,wbr");
@@ -91,6 +84,17 @@ if (typeof uni !== 'undefined' && uni && uni.requireGlobal) {
 
   // ../../../../../../Users/licat/Desktop/project/planttitle-app/unpackage/dist/dev/.nvue/pages/mall/detail.js
   var import_vue2 = __toESM(require_vue());
+
+  // ../../../../../../Users/licat/Desktop/project/planttitle-app/unpackage/dist/dev/.nvue/_plugin-vue_export-helper.js
+  var _export_sfc = (sfc, props) => {
+    const target = sfc.__vccOpts || sfc;
+    for (const [key, val] of props) {
+      target[key] = val;
+    }
+    return target;
+  };
+
+  // ../../../../../../Users/licat/Desktop/project/planttitle-app/unpackage/dist/dev/.nvue/pages/mall/detail.js
   var _style_0 = { "content": { "": { "minHeight": 100, "height": 100 } }, "goods": { "": { "height": 180, "position": "relative", "backgroundColor": "#cccccc", "flexDirection": "row", "overflow": "hidden" } }, "goods-img": { "": { "flex": 1 } }, "title-area": { "": { "position": "absolute", "left": 15, "right": 15, "bottom": 15, "zIndex": 11 } }, "title-text": { "": { "fontSize": 16, "fontWeight": "400", "lineHeight": 20, "lines": 2, "color": "#ffffff", "overflow": "hidden" } }, "article-title": { "": { "paddingTop": 10, "paddingRight": 15, "paddingBottom": 0, "paddingLeft": 15 } }, "article-title-text": { "": { "fontSize": 26 } }, "article-meta": { "": { "paddingTop": 10, "paddingRight": 15, "paddingBottom": 10, "paddingLeft": 15, "flexDirection": "row", "alignItems": "center", "justifyContent": "flex-start" } }, "article-meta-text": { "": { "color": "#808080" } }, "article-text": { "": { "fontSize": 12, "lineHeight": 25, "marginTop": 0, "marginRight": 10, "marginBottom": 0, "marginLeft": 10 } }, "article-author": { "": { "fontSize": 15 } }, "article-time": { "": { "fontSize": 15 } }, "article-content": { "": { "fontSize": 15, "marginBottom": 15, "overflow": "hidden", "height": 100, "minHeight": 100, "content::after": '""', "width::after": 100, "backgroundColor::after": "rgba(0,0,0,0)" } } };
   var _sfc_main = {
     data() {

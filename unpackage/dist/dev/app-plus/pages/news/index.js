@@ -83,7 +83,7 @@ if (typeof uni !== 'undefined' && uni && uni.requireGlobal) {
     }
   });
 
-  // ../../../../../../Users/licat/Desktop/project/planttitle-app/unpackage/dist/dev/.nvue/_plugin-vue_export-helper.js
+  // ../../../../../../Users/licat/Desktop/project/planttitle-app/unpackage/dist/dev/.nvue/uni-app.es.js
   var import_vue = __toESM(require_vue());
   function formatAppLog(type, filename, ...args) {
     if (uni.__log__) {
@@ -92,6 +92,11 @@ if (typeof uni !== 'undefined' && uni && uni.requireGlobal) {
       console[type].apply(console, [...args, filename]);
     }
   }
+
+  // ../../../../../../Users/licat/Desktop/project/planttitle-app/unpackage/dist/dev/.nvue/pages/news/index.js
+  var import_vue2 = __toESM(require_vue());
+
+  // ../../../../../../Users/licat/Desktop/project/planttitle-app/unpackage/dist/dev/.nvue/_plugin-vue_export-helper.js
   var _export_sfc = (sfc, props) => {
     const target = sfc.__vccOpts || sfc;
     for (const [key, val] of props) {
@@ -101,7 +106,6 @@ if (typeof uni !== 'undefined' && uni && uni.requireGlobal) {
   };
 
   // ../../../../../../Users/licat/Desktop/project/planttitle-app/unpackage/dist/dev/.nvue/pages/news/index.js
-  var import_vue2 = __toESM(require_vue());
   var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
   var dayjs_minExports = {};
   var dayjs_min = {
@@ -401,52 +405,14 @@ if (typeof uni !== 'undefined' && uni && uni.requireGlobal) {
       }, w.en = D[g], w.Ls = D, w.p = {}, w;
     });
   })(dayjs_min);
-  function friendlyDate(timestamp) {
-    let formats = {
-      "year": "%n% \u5E74\u524D",
-      "month": "%n% \u6708\u524D",
-      "day": "%n% \u5929\u524D",
-      "hour": "%n% \u5C0F\u65F6\u524D",
-      "minute": "%n% \u5206\u949F\u524D",
-      "second": "%n% \u79D2\u524D"
-    };
-    let now = Date.now();
-    let seconds = Math.floor((now - timestamp) / 1e3);
-    let minutes = Math.floor(seconds / 60);
-    let hours = Math.floor(minutes / 60);
-    let days = Math.floor(hours / 24);
-    let months = Math.floor(days / 30);
-    let years = Math.floor(months / 12);
-    let diffType = "";
-    let diffValue = 0;
-    if (years > 0) {
-      diffType = "year";
-      diffValue = years;
-    } else {
-      if (months > 0) {
-        diffType = "month";
-        diffValue = months;
-      } else {
-        if (days > 0) {
-          diffType = "day";
-          diffValue = days;
-        } else {
-          if (hours > 0) {
-            diffType = "hour";
-            diffValue = hours;
-          } else {
-            if (minutes > 0) {
-              diffType = "minute";
-              diffValue = minutes;
-            } else {
-              diffType = "second";
-              diffValue = seconds === 0 ? seconds = 1 : seconds;
-            }
-          }
-        }
-      }
-    }
-    return formats[diffType].replace("%n%", diffValue);
+  var dayjs = dayjs_minExports;
+  function getTodayDate() {
+    var currentDate = /* @__PURE__ */ new Date();
+    var year = currentDate.getFullYear();
+    var month = (currentDate.getMonth() + 1).toString().padStart(2, "0");
+    var day = currentDate.getDate().toString().padStart(2, "0");
+    var formattedDate = year + "/" + month + "/" + day;
+    return formattedDate;
   }
   var _style_0$4 = { "view": { "": { "flexDirection": "column" } }, "flex-row": { "": { "flexDirection": "row" } }, "flex-col": { "": { "flexDirection": "column" } }, "list-cell": { "": { "paddingTop": 0, "paddingRight": 15, "paddingBottom": 0, "paddingLeft": 15 } }, "uni-list-cell-hover": { "": { "backgroundColor": "#eeeeee" } }, "media-item": { "": { "position": "relative", "flex": 1, "flexDirection": "column", "paddingTop": 10, "paddingRight": 15, "paddingBottom": 10, "paddingLeft": 15 } }, "media-item-line": { "": { "position": "absolute", "left": 15, "right": 15, "bottom": 0, "height": 1, "backgroundColor": "#ebebeb" } }, "media-image-right": { "": { "flexDirection": "row" } }, "media-image-left": { "": { "flexDirection": "row-reverse" } }, "media-title": { "": { "flex": 1, "lines": 3, "textOverflow": "ellipsis", "fontSize": 15, "color": "#555555" } }, "media-title2": { "": { "flex": 1, "marginTop": 3, "lineHeight": 20 } }, "image-section": { "": { "marginTop": 10, "flexDirection": "row", "justifyContent": "space-between" } }, "image-section-right": { "": { "marginTop": 0, "marginLeft": 5, "width": 112, "height": 73 } }, "image-section-left": { "": { "marginTop": 0, "marginRight": 5, "width": 112, "height": 73 } }, "image-list1": { "": { "height": 240 } }, "image-list2": { "": { "width": 112, "height": 73 } }, "image-list3": { "": { "width": 112, "height": 73 } }, "media-info": { "": { "flexDirection": "row", "alignItems": "center" } }, "info-text": { "": { "marginRight": 10, "color": "#999999", "fontSize": 12 } }, "media-foot": { "": { "marginTop": 12, "flexDirection": "row", "alignItems": "center", "justifyContent": "space-between" } }, "close-view": { "": { "position": "relative", "alignItems": "center", "flexDirection": "row", "width": 20, "height": 15, "lineHeight": 15, "borderWidth": "1rpx", "borderStyle": "solid", "borderColor": "#aaaaaa", "borderRadius": 4, "justifyContent": "center", "textAlign": "center" } }, "close-l": { "": { "position": "absolute", "width": 9, "height": 1, "backgroundColor": "#aaaaaa" } }, "close-h": { "": { "transform": "rotate(45deg)" } }, "close-v": { "": { "transform": "rotate(-45deg)" } } };
   var _sfc_main$4 = {
@@ -537,7 +503,7 @@ if (typeof uni !== 'undefined' && uni && uni.requireGlobal) {
           (0, import_vue2.createElementVNode)(
             "u-text",
             { class: "info-text" },
-            (0, import_vue2.toDisplayString)($props.newsItem.comment_count || 0) + "\u6761\u8BC4\u8BBA",
+            (0, import_vue2.toDisplayString)($props.newsItem.comment_count || 0) + (0, import_vue2.toDisplayString)(_ctx.$t("common.comments")),
             1
             /* TEXT */
           ),
@@ -815,17 +781,31 @@ if (typeof uni !== 'undefined' && uni && uni.requireGlobal) {
           contentnomore: ""
         },
         refreshIcon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAB5QTFRFcHBw3Nzct7e39vb2ycnJioqK7e3tpqam29vb////D8oK7wAAAAp0Uk5T////////////ALLMLM8AAABxSURBVHja7JVBDoAgDASrjqj//7CJBi90iyYeOHTPMwmFZrHjYyyFYYUy1bwUZqtJIYVxhf1a6u0R7iUvWsCcrEtwJHp8MwMdvh2amHduiZD3rpWId9+BgPd7Cc2LIkPyqvlQvKxKBJ//Qwq/CacAAwDUv0a0YuKhzgAAAABJRU5ErkJggg==",
-        aditem: {
+        adItems: [{
           id: this.newGuid() + "-1",
           newsid: -1,
-          article_type: 1,
-          datetime: friendlyDate(new Date("2023-09-23 09:41:04".replace(/\-/g, "/")).getTime()),
+          article_type: -1,
+          //廣告類型
+          datetime: getTodayDate(),
           title: "\u6211\u6210\u529F\u64FA\u812B\u6BDB\u56CA\u89D2\u5316\u75C7\u5566\uFF01\u5076\u7136\u767C\u73FE\u7D55\u5999\u65B9\u6CD5\uFF0C\u89AA\u6E2C\u6709\u6548\u7684\u65B9\u6CD5\u5206\u4EAB\u7D66\u4F60\u5011",
           image_url: "https://img.alicdn.com/imgextra/i2/917298378/O1CN01j635bC2BlAwDppuwX_!!917298378.jpg",
           source: "\u808C\u819A\u8B77\u7406",
           comment_count: "999+",
-          post_id: "-1"
-        }
+          post_id: "-1",
+          article_url: "https://www.twjpf.com"
+        }, {
+          id: this.newGuid() + "-1",
+          newsid: -1,
+          article_type: -1,
+          //廣告類型
+          datetime: getTodayDate(),
+          title: "\u63ED\u79D8\uFF1A69\u6B72\u5973\u4EBA\u4E0D\u9577\u6591\uFF0C\u201C\u8FD4\u8001\u9084\u7AE5\u201D\u7684\u79D8\u5BC6",
+          image_url: "https://img.alicdn.com/imgextra/i3/917298378/O1CN01Salypn2BlAw0fnqbp_!!917298378.jpg",
+          source: "\u982D\u689D\u65B0\u805E",
+          comment_count: "999+",
+          post_id: "-1",
+          article_url: "https://www.irisiii.com/"
+        }]
       };
     },
     created() {
@@ -858,7 +838,10 @@ if (typeof uni !== 'undefined' && uni && uni.requireGlobal) {
                 id: this.newGuid() + news.id,
                 newsid: news.id,
                 article_type: 1,
-                datetime: friendlyDate(new Date(news.published_at.replace(/\-/g, "/")).getTime()),
+                datetime: dayjs(news.published_at).format(
+                  "YYYY/MM/DD"
+                ),
+                //friendlyDate(new Date(news.published_at.replace(/\-/g, '/')).getTime()),
                 title: news.title,
                 image_url: news.cover,
                 source: news.author_name,
@@ -887,7 +870,7 @@ if (typeof uni !== 'undefined' && uni && uni.requireGlobal) {
             if (refresh) {
               this.refreshing = false;
               this.refreshFlag = false;
-              this.refreshText = "\u5DF2\u5237\u65B0";
+              this.refreshText = $t("common.refreshed");
               if (this.pullTimer) {
                 clearTimeout(this.pullTimer);
               }
@@ -907,24 +890,38 @@ if (typeof uni !== 'undefined' && uni && uni.requireGlobal) {
       },
       goDetail(item) {
         if (this._isWidescreen) {
-          uni.$emit("updateDetail", {
+          let eventName = "articleDetail";
+          if (item.article_type === -1) {
+            eventName = "adDetail";
+          }
+          uni.$emit(eventName, {
             detail: encodeURIComponent(JSON.stringify(item))
           });
           return;
         }
+        let query = encodeURIComponent(JSON.stringify(item));
+        let url = "./detail?query=" + query;
+        if (item.article_type === -1) {
+          url = "./ad?query=" + query;
+        }
         uni.navigateTo({
-          url: "./detail?query=" + encodeURIComponent(JSON.stringify(item)),
+          url,
           fail: (res) => {
-            formatAppLog("log", "at pages/news/news-page.nvue:194", res.errMsg);
           }
         });
+      },
+      getAdItem(index2) {
+        const n = this.adItems.length;
+        if (n === 0)
+          return null;
+        return this.adItems[index2 % n];
       },
       closeItem(index2) {
         if (index2 < 0) {
           return;
         }
         uni.showModal({
-          content: "\u4E0D\u611F\u5174\u8DA3\uFF1F",
+          content: "\u4E0D\u611F\u8208\u8DA3\uFF1F",
           success: (res) => {
             if (res.confirm) {
               this.dataList.splice(index2, 1);
@@ -938,7 +935,7 @@ if (typeof uni !== 'undefined' && uni && uni.requireGlobal) {
         }
         this.pulling = true;
         this.refreshing = true;
-        this.refreshText = "\u6B63\u5728\u5237\u65B0...";
+        this.refreshText = $t("common.refreshing");
         this.loadData(true);
       },
       onrefresh(e) {
@@ -986,12 +983,12 @@ if (typeof uni !== 'undefined' && uni && uni.requireGlobal) {
             return (0, import_vue2.openBlock)(), (0, import_vue2.createElementBlock)("cell", {
               key: item.id
             }, [
-              (index2 + 1) % 9 === 0 ? ((0, import_vue2.openBlock)(), (0, import_vue2.createBlock)(_component_news_item, {
+              (index2 + 1) % 10 === 0 && !!$options.getAdItem(index2) ? ((0, import_vue2.openBlock)(), (0, import_vue2.createBlock)(_component_news_item, {
                 key: 0,
-                newsItem: $data.aditem,
+                newsItem: $options.getAdItem(index2),
                 onClose: _cache[2] || (_cache[2] = ($event) => $options.closeItem(-1)),
-                onClick: _cache[3] || (_cache[3] = ($event) => $options.goDetail($data.aditem))
-              }, null, 8, ["newsItem"])) : (0, import_vue2.createCommentVNode)("v-if", true),
+                onClick: ($event) => $options.goDetail($options.getAdItem(index2))
+              }, null, 8, ["newsItem", "onClick"])) : (0, import_vue2.createCommentVNode)("v-if", true),
               (0, import_vue2.createVNode)(_component_news_item, {
                 newsItem: item,
                 onClose: ($event) => $options.closeItem(index2),

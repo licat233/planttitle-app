@@ -1,12 +1,47 @@
 import dayjs from "dayjs";
 
+function getTodayDate() {
+	var currentDate = new Date();
+
+	var year = currentDate.getFullYear();
+	var month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+	var day = currentDate.getDate().toString().padStart(2, '0');
+
+	var formattedDate = year + '/' + month + '/' + day;
+	return formattedDate;
+}
+
+function formatTime(dateString) {
+	var date = new Date(dateString);
+
+	var year = date.getFullYear();
+	var month = (date.getMonth() + 1).toString().padStart(2, '0');
+	var day = date.getDate().toString().padStart(2, '0');
+
+	var formattedDate = year + '/' + month + '/' + day;
+	return formattedDate;
+}
+
+function getTwoDaysAgoDate() {
+	var currentDate = new Date();
+	currentDate.setDate(currentDate.getDate() - 2);
+
+	var year = currentDate.getFullYear();
+	var month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+	var day = currentDate.getDate().toString().padStart(2, '0');
+
+	var formattedDate = year + '/' + month + '/' + day;
+	return formattedDate;
+}
+
+
 function friendlyDate(timestamp) {
 	let formats = {
 		'year': '%n% 年前',
 		'month': '%n% 月前',
 		'day': '%n% 天前',
-		'hour': '%n% 小时前',
-		'minute': '%n% 分钟前',
+		'hour': '%n% 小時前',
+		'minute': '%n% 分鐘前',
 		'second': '%n% 秒前',
 	};
 
@@ -293,6 +328,56 @@ export const joinPath = (basePath, ...parts) => {
 	return filteParts.join(separator);
 }
 
+export const notify = (title, options, callback) => {
+	// 先检查浏览器是否支持
+	if (!window.Notification) {
+		return;
+	}
+	var notification;
+	// 检查用户曾经是否同意接受通知
+	if (Notification.permission === 'granted') {
+		notification = new Notification(title, options); // 显示通知
+
+	} else {
+		var promise = Notification.requestPermission();
+	}
+
+	if (notification && callback) {
+		notification.onclick = function(event) {
+			callback(notification, event);
+		}
+		setTimeout(function() {
+			notification.close();
+		}, 3000);
+	}
+}
+
+export const showNotification = (title, options, onClick) => {
+	if (!("Notification" in window)) {
+		console.log("该浏览器不支持通知功能");
+		return;
+	}
+	let notification = null
+	if (Notification.permission === "granted") {
+		notification = new Notification(title, options);
+
+		notification.onclick = onClick || function() {};
+
+	} else if (Notification.permission !== "denied") {
+		Notification.requestPermission().then(function(permission) {
+			if (permission === "granted") {
+				notification = new Notification(title, options);
+				notification.onclick = onClick || function() {};
+			}
+		});
+	}
+	if (notification) {
+		setTimeout(function() {
+			notification.close();
+		}, 3000);
+	}
+}
+
 export {
 	friendlyDate,
 	msgDate,
@@ -308,4 +393,6 @@ export {
 	initFullScreen,
 	banDevtool,
 	isMobile,
+	getTwoDaysAgoDate,
+	getTodayDate
 }

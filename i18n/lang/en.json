@@ -19,6 +19,11 @@
 	},
 	"common": {
 		"notSupport": "not support",
-		"confirmType": "break"
+		"confirmType": "break",
+		"cancel": "cancel",
+		"confirm": "confirm",
+		"comments": "comments",
+		"refreshing": "refreshing...",
+		"refreshed": "refreshed"
 	}
 }

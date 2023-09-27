@@ -4,6 +4,9 @@ Promise.resolve("./pages/news/index.js").then((res) => {
 Promise.resolve("./pages/news/detail.js").then((res) => {
   res.length;
 });
+Promise.resolve("./pages/news/ad.js").then((res) => {
+  res.length;
+});
 Promise.resolve("./pages/mall/detail.js").then((res) => {
   res.length;
 });

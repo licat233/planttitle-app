@@ -1,11 +1,3 @@
-import "vue";
-function formatAppLog(type, filename, ...args) {
-  if (uni.__log__) {
-    uni.__log__(type, filename, ...args);
-  } else {
-    console[type].apply(console, [...args, filename]);
-  }
-}
 const _export_sfc = (sfc, props) => {
   const target = sfc.__vccOpts || sfc;
   for (const [key, val] of props) {
@@ -14,6 +6,5 @@ const _export_sfc = (sfc, props) => {
   return target;
 };
 export {
-  _export_sfc as _,
-  formatAppLog as f
+  _export_sfc as _
 };

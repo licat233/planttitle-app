@@ -72,7 +72,7 @@
 				waiterAvatar: "https://img.alicdn.com/imgextra/i1/917298378/O1CN01Su4K112BlAqorDkFr_!!917298378.jpg",
 				msgTime: this.msgTimeFormat(),
 				show: this.verifyMsg(),
-				self: this.msg.fromUID !== this.msg.channel.channelID,
+				self: this.authMsgFromSelf(this.msg),
 				sendDate: this.messageDate(),
 			};
 		},
@@ -108,6 +108,9 @@
 						//其它类型消息，暂不支持
 						return false
 				}
+			},
+			authMsgFromSelf(msg) {
+				return msg.fromUID === getApp().globalData.chatUid || msg.channel.channelID !== msg.fromUID
 			},
 		},
 	};

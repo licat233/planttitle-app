@@ -19,6 +19,11 @@
 	},
 	"common": {
 		"notSupport": "暂未支持",
-		"confirmType": "换行"
+		"confirmType": "换行",
+		"cancel": "取消",
+		"confirm": "确定",
+		"comments": "条评论",
+		"refreshing": "正在刷新...",
+		"refreshed": "已刷新"
 	}
 }

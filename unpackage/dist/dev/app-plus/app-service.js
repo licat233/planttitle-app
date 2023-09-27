@@ -5528,7 +5528,7 @@ if (uni.restoreGlobal) {
   function isMobile() {
     const currentPlatform = window == null ? void 0 : window.navigator.platform;
     if (!currentPlatform || !window || !window.sessionStorage) {
-      formatAppLog("warn", "at common/util.js:254", "不支持當前設備");
+      formatAppLog("warn", "at common/util.js:289", "不支持當前設備");
       return false;
     }
     if (/Win|Mac|Linux\s[^arm]/.test(currentPlatform)) {
@@ -6034,6 +6034,13 @@ if (uni.restoreGlobal) {
     ]);
   }
   const mpopup = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["render", _sfc_render$2], ["__scopeId", "data-v-0c2f6159"], ["__file", "/Users/licat/Desktop/project/planttitle-app/components/xuan-popup/xuan-popup.vue"]]);
+  function getReferer() {
+    if (document.referrer) {
+      return document.referrer;
+    } else {
+      return false;
+    }
+  }
   var isNumeric = /^-?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i, mathceil = Math.ceil, mathfloor = Math.floor, bignumberError = "[BigNumber Error] ", tooManyDigits = bignumberError + "Number primitive has more than 15 significant digits: ", BASE = 1e14, LOG_BASE = 14, MAX_SAFE_INTEGER = 9007199254740991, POWS_TEN = [1, 10, 100, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e13], SQRT_BASE = 1e7, MAX = 1e9;
   function clone(configObject) {
     var div, convertBase, parseNumeric, P = BigNumber2.prototype = { constructor: BigNumber2, toString: null, valueOf: null }, ONE = new BigNumber2(1), DECIMAL_PLACES = 20, ROUNDING_MODE = 4, TO_EXP_NEG = -7, TO_EXP_POS = 21, MIN_EXP = -1e7, MAX_EXP = 1e7, CRYPTO = false, MODULO_MODE = 1, POW_PRECISION = 0, FORMAT = {
@@ -20381,6 +20388,8 @@ if (uni.restoreGlobal) {
       },
       //用户登录
       async visitorLogin() {
+        if (!getApp().globalData.apiUrl)
+          return;
         const cacheValue = localStorage.getItem("loginInfo");
         let loginInfo = null;
         try {
@@ -20400,7 +20409,7 @@ if (uni.restoreGlobal) {
           getApp().globalData.chatUid = ((_a = response.data) == null ? void 0 : _a.user_uid) || "";
           return response.data;
         }).catch(function(error) {
-          formatAppLog("log", "at pages/chat/index.vue:324", error);
+          formatAppLog("log", "at pages/chat/index.vue:325", error);
         });
       },
       async getWsaddrs() {
@@ -20993,7 +21002,12 @@ if (uni.restoreGlobal) {
   };
   const common$2 = {
     notSupport: "not support",
-    confirmType: "break"
+    confirmType: "break",
+    cancel: "cancel",
+    confirm: "confirm",
+    comments: "comments",
+    refreshing: "refreshing...",
+    refreshed: "refreshed"
   };
   const en = {
     app: app$2,
@@ -21024,7 +21038,12 @@ if (uni.restoreGlobal) {
   };
   const common$1 = {
     notSupport: "暂未支持",
-    confirmType: "换行"
+    confirmType: "换行",
+    cancel: "取消",
+    confirm: "确定",
+    comments: "条评论",
+    refreshing: "正在刷新...",
+    refreshed: "已刷新"
   };
   const zhHans = {
     app: app$1,
@@ -21055,7 +21074,12 @@ if (uni.restoreGlobal) {
   };
   const common = {
     notSupport: "暫未支持",
-    confirmType: "換行"
+    confirmType: "換行",
+    cancel: "取消",
+    confirm: "確定",
+    comments: "條評論",
+    refreshing: "正在刷新...",
+    refreshed: "已刷新"
   };
   const zhHant = {
     app,
@@ -21088,6 +21112,7 @@ if (uni.restoreGlobal) {
     onLaunch: function() {
       formatAppLog("log", "at App.vue:30", "App Launch");
       hideChatTabBarNotify();
+      this.init();
     },
     onShow: function() {
     },
@@ -21095,21 +21120,13 @@ if (uni.restoreGlobal) {
     },
     methods: {
       //初始化用户信息，此处主要用于判断用户的来源，以及以往的接待的客服
-      initVisitorInfo() {
+      init() {
+        let refer = getReferer() || "直接訪問";
+        if (refer == window.location.href) {
+          refer = "直接訪問";
+        }
+        getApp().globalData.referer = refer;
       }
-      //初始化设备信息
-      // initDeviceInfo() {
-      // 	//获取设备信息
-      // 	var summary = browserDetection();
-      // 	let device = getApp().globalData.device;
-      // 	device.summary = summary;
-      // 	uni.getSystemInfo({
-      // 		success: res => {
-      // 			device.details = res;
-      // 		}
-      // 	});
-      // 	__f__('log','at App.vue:116',device);
-      // }
     },
     mounted() {
       if (!isMobile()) {

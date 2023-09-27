@@ -1,5 +1,6 @@
-import { _ as _export_sfc, f as formatAppLog } from "../../_plugin-vue_export-helper.js";
+import { f as formatAppLog } from "../../uni-app.es.js";
 import { openBlock, createElementBlock, createElementVNode, normalizeStyle, normalizeClass, toDisplayString, createCommentVNode, Fragment, renderList, withModifiers, resolveComponent, createBlock, createVNode, withCtx } from "vue";
+import { _ as _export_sfc } from "../../_plugin-vue_export-helper.js";
 var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
 var dayjs_minExports = {};
 var dayjs_min = {
@@ -299,52 +300,14 @@ var dayjs_min = {
     }, w.en = D[g], w.Ls = D, w.p = {}, w;
   });
 })(dayjs_min);
-function friendlyDate(timestamp) {
-  let formats = {
-    "year": "%n% 年前",
-    "month": "%n% 月前",
-    "day": "%n% 天前",
-    "hour": "%n% 小时前",
-    "minute": "%n% 分钟前",
-    "second": "%n% 秒前"
-  };
-  let now = Date.now();
-  let seconds = Math.floor((now - timestamp) / 1e3);
-  let minutes = Math.floor(seconds / 60);
-  let hours = Math.floor(minutes / 60);
-  let days = Math.floor(hours / 24);
-  let months = Math.floor(days / 30);
-  let years = Math.floor(months / 12);
-  let diffType = "";
-  let diffValue = 0;
-  if (years > 0) {
-    diffType = "year";
-    diffValue = years;
-  } else {
-    if (months > 0) {
-      diffType = "month";
-      diffValue = months;
-    } else {
-      if (days > 0) {
-        diffType = "day";
-        diffValue = days;
-      } else {
-        if (hours > 0) {
-          diffType = "hour";
-          diffValue = hours;
-        } else {
-          if (minutes > 0) {
-            diffType = "minute";
-            diffValue = minutes;
-          } else {
-            diffType = "second";
-            diffValue = seconds === 0 ? seconds = 1 : seconds;
-          }
-        }
-      }
-    }
-  }
-  return formats[diffType].replace("%n%", diffValue);
+const dayjs = dayjs_minExports;
+function getTodayDate() {
+  var currentDate = /* @__PURE__ */ new Date();
+  var year = currentDate.getFullYear();
+  var month = (currentDate.getMonth() + 1).toString().padStart(2, "0");
+  var day = currentDate.getDate().toString().padStart(2, "0");
+  var formattedDate = year + "/" + month + "/" + day;
+  return formattedDate;
 }
 const _style_0$4 = { "view": { "": { "flexDirection": "column" } }, "flex-row": { "": { "flexDirection": "row" } }, "flex-col": { "": { "flexDirection": "column" } }, "list-cell": { "": { "paddingTop": 0, "paddingRight": 15, "paddingBottom": 0, "paddingLeft": 15 } }, "uni-list-cell-hover": { "": { "backgroundColor": "#eeeeee" } }, "media-item": { "": { "position": "relative", "flex": 1, "flexDirection": "column", "paddingTop": 10, "paddingRight": 15, "paddingBottom": 10, "paddingLeft": 15 } }, "media-item-line": { "": { "position": "absolute", "left": 15, "right": 15, "bottom": 0, "height": 1, "backgroundColor": "#ebebeb" } }, "media-image-right": { "": { "flexDirection": "row" } }, "media-image-left": { "": { "flexDirection": "row-reverse" } }, "media-title": { "": { "flex": 1, "lines": 3, "textOverflow": "ellipsis", "fontSize": 15, "color": "#555555" } }, "media-title2": { "": { "flex": 1, "marginTop": 3, "lineHeight": 20 } }, "image-section": { "": { "marginTop": 10, "flexDirection": "row", "justifyContent": "space-between" } }, "image-section-right": { "": { "marginTop": 0, "marginLeft": 5, "width": 112, "height": 73 } }, "image-section-left": { "": { "marginTop": 0, "marginRight": 5, "width": 112, "height": 73 } }, "image-list1": { "": { "height": 240 } }, "image-list2": { "": { "width": 112, "height": 73 } }, "image-list3": { "": { "width": 112, "height": 73 } }, "media-info": { "": { "flexDirection": "row", "alignItems": "center" } }, "info-text": { "": { "marginRight": 10, "color": "#999999", "fontSize": 12 } }, "media-foot": { "": { "marginTop": 12, "flexDirection": "row", "alignItems": "center", "justifyContent": "space-between" } }, "close-view": { "": { "position": "relative", "alignItems": "center", "flexDirection": "row", "width": 20, "height": 15, "lineHeight": 15, "borderWidth": "1rpx", "borderStyle": "solid", "borderColor": "#aaaaaa", "borderRadius": 4, "justifyContent": "center", "textAlign": "center" } }, "close-l": { "": { "position": "absolute", "width": 9, "height": 1, "backgroundColor": "#aaaaaa" } }, "close-h": { "": { "transform": "rotate(45deg)" } }, "close-v": { "": { "transform": "rotate(-45deg)" } } };
 const _sfc_main$4 = {
@@ -435,7 +398,7 @@ function _sfc_render$4(_ctx, _cache, $props, $setup, $data, $options) {
         createElementVNode(
           "u-text",
           { class: "info-text" },
-          toDisplayString($props.newsItem.comment_count || 0) + "条评论",
+          toDisplayString($props.newsItem.comment_count || 0) + toDisplayString(_ctx.$t("common.comments")),
           1
           /* TEXT */
         ),
@@ -711,17 +674,31 @@ const _sfc_main$1 = {
         contentnomore: ""
       },
       refreshIcon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAB5QTFRFcHBw3Nzct7e39vb2ycnJioqK7e3tpqam29vb////D8oK7wAAAAp0Uk5T////////////ALLMLM8AAABxSURBVHja7JVBDoAgDASrjqj//7CJBi90iyYeOHTPMwmFZrHjYyyFYYUy1bwUZqtJIYVxhf1a6u0R7iUvWsCcrEtwJHp8MwMdvh2amHduiZD3rpWId9+BgPd7Cc2LIkPyqvlQvKxKBJ//Qwq/CacAAwDUv0a0YuKhzgAAAABJRU5ErkJggg==",
-      aditem: {
+      adItems: [{
         id: this.newGuid() + "-1",
         newsid: -1,
-        article_type: 1,
-        datetime: friendlyDate(new Date("2023-09-23 09:41:04".replace(/\-/g, "/")).getTime()),
+        article_type: -1,
+        //廣告類型
+        datetime: getTodayDate(),
         title: "我成功擺脫毛囊角化症啦！偶然發現絕妙方法，親測有效的方法分享給你們",
         image_url: "https://img.alicdn.com/imgextra/i2/917298378/O1CN01j635bC2BlAwDppuwX_!!917298378.jpg",
         source: "肌膚護理",
         comment_count: "999+",
-        post_id: "-1"
-      }
+        post_id: "-1",
+        article_url: "https://www.twjpf.com"
+      }, {
+        id: this.newGuid() + "-1",
+        newsid: -1,
+        article_type: -1,
+        //廣告類型
+        datetime: getTodayDate(),
+        title: "揭秘：69歲女人不長斑，“返老還童”的秘密",
+        image_url: "https://img.alicdn.com/imgextra/i3/917298378/O1CN01Salypn2BlAw0fnqbp_!!917298378.jpg",
+        source: "頭條新聞",
+        comment_count: "999+",
+        post_id: "-1",
+        article_url: "https://www.irisiii.com/"
+      }]
     };
   },
   created() {
@@ -754,7 +731,10 @@ const _sfc_main$1 = {
               id: this.newGuid() + news.id,
               newsid: news.id,
               article_type: 1,
-              datetime: friendlyDate(new Date(news.published_at.replace(/\-/g, "/")).getTime()),
+              datetime: dayjs(news.published_at).format(
+                "YYYY/MM/DD"
+              ),
+              //friendlyDate(new Date(news.published_at.replace(/\-/g, '/')).getTime()),
               title: news.title,
               image_url: news.cover,
               source: news.author_name,
@@ -783,7 +763,7 @@ const _sfc_main$1 = {
           if (refresh) {
             this.refreshing = false;
             this.refreshFlag = false;
-            this.refreshText = "已刷新";
+            this.refreshText = $t("common.refreshed");
             if (this.pullTimer) {
               clearTimeout(this.pullTimer);
             }
@@ -803,24 +783,38 @@ const _sfc_main$1 = {
     },
     goDetail(item) {
       if (this._isWidescreen) {
-        uni.$emit("updateDetail", {
+        let eventName = "articleDetail";
+        if (item.article_type === -1) {
+          eventName = "adDetail";
+        }
+        uni.$emit(eventName, {
           detail: encodeURIComponent(JSON.stringify(item))
         });
         return;
       }
+      let query = encodeURIComponent(JSON.stringify(item));
+      let url = "./detail?query=" + query;
+      if (item.article_type === -1) {
+        url = "./ad?query=" + query;
+      }
       uni.navigateTo({
-        url: "./detail?query=" + encodeURIComponent(JSON.stringify(item)),
+        url,
         fail: (res) => {
-          formatAppLog("log", "at pages/news/news-page.nvue:194", res.errMsg);
         }
       });
+    },
+    getAdItem(index2) {
+      const n = this.adItems.length;
+      if (n === 0)
+        return null;
+      return this.adItems[index2 % n];
     },
     closeItem(index2) {
       if (index2 < 0) {
         return;
       }
       uni.showModal({
-        content: "不感兴趣？",
+        content: "不感興趣？",
         success: (res) => {
           if (res.confirm) {
             this.dataList.splice(index2, 1);
@@ -834,7 +828,7 @@ const _sfc_main$1 = {
       }
       this.pulling = true;
       this.refreshing = true;
-      this.refreshText = "正在刷新...";
+      this.refreshText = $t("common.refreshing");
       this.loadData(true);
     },
     onrefresh(e) {
@@ -882,12 +876,12 @@ function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
           return openBlock(), createElementBlock("cell", {
             key: item.id
           }, [
-            (index2 + 1) % 9 === 0 ? (openBlock(), createBlock(_component_news_item, {
+            (index2 + 1) % 10 === 0 && !!$options.getAdItem(index2) ? (openBlock(), createBlock(_component_news_item, {
               key: 0,
-              newsItem: $data.aditem,
+              newsItem: $options.getAdItem(index2),
               onClose: _cache[2] || (_cache[2] = ($event) => $options.closeItem(-1)),
-              onClick: _cache[3] || (_cache[3] = ($event) => $options.goDetail($data.aditem))
-            }, null, 8, ["newsItem"])) : createCommentVNode("v-if", true),
+              onClick: ($event) => $options.goDetail($options.getAdItem(index2))
+            }, null, 8, ["newsItem", "onClick"])) : createCommentVNode("v-if", true),
             createVNode(_component_news_item, {
               newsItem: item,
               onClose: ($event) => $options.closeItem(index2),
