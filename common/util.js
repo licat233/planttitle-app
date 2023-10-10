@@ -358,11 +358,9 @@ export const showNotification = (title, options, onClick) => {
 		return;
 	}
 	let notification = null
-	if (Notification.permission === "granted") {
+	if (window.Notification.permission === "granted") {
 		notification = new Notification(title, options);
-
 		notification.onclick = onClick || function() {};
-
 	} else if (Notification.permission !== "denied") {
 		Notification.requestPermission().then(function(permission) {
 			if (permission === "granted") {
@@ -376,6 +374,30 @@ export const showNotification = (title, options, onClick) => {
 			notification.close();
 		}, 3000);
 	}
+}
+
+export const initNotification = () => {
+	if (!("Notification" in window)) {
+		console.log("This browser does not support notification functionality");
+	} else {
+		if (window.Notification.permission !== "granted") {
+			window.Notification.requestPermission().then(function(permission) {
+				if (permission === "granted") {
+					// 用户允许显示通知
+				} else if (permission === "denied") {
+					// 用户拒绝显示通知
+				}
+			});
+		}
+	}
+}
+
+export const newUuid = () => {
+	let s4 = function() {
+		return (65536 * (1 + Math.random()) | 0).toString(16).substring(1);
+	}
+	return (s4() + s4() + "-" + s4() + "-4" + s4().substr(0, 3) + "-" + s4() + "-" + s4() + s4() + s4())
+		.toLowerCase();
 }
 
 export {

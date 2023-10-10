@@ -1,9 +1,9 @@
 {
-  "id": "planttitle-app",
-  "name": "planttitle",
-  "displayName": "植題官方app",
+  "id": "hotnews",
+  "name": "hot news",
+  "displayName": "熱門資訊",
   "version": "0.0.1",
-  "description": "植題官方app",
+  "description": "熱門資訊app",
   "keywords": [
     "植題",
     "新聞資訊",
@@ -78,14 +78,11 @@
     }
   },
   "dependencies": {
-    "@intlify/vite-plugin-vue-i18n": "^7.0.0",
     "animate.css": "^4.1.1",
     "axios": "^1.1.3",
     "dayjs": "^1.11.6",
     "getos": "^3.2.1",
     "nanoid": "^4.0.0",
-    "vue-i18n": "^9.2.2",
-    "websocket": "^1.0.34",
-    "wukongimjssdk": "^1.1.1"
+    "wukongimjssdk": "^1.2.2"
   }
 }

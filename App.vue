@@ -1,16 +1,12 @@
 <script>
 	import 'animate.css';
 	import {
-		hideChatTabBarNotify,
-		banDevtool,
-		isMobile
+		// hideChatTabBarNotify,
+		// banDevtool,
+		// isMobile,
+		getTodayDate,
+		newUuid
 	} from '@/common/util.js';
-	import browserDetection from "@/common/browser-detection.js";
-	import {
-		getCache,
-		setCache,
-		getReferer
-	} from "@/common/functions.js";
 
 	export default {
 		globalData: {
@@ -25,42 +21,36 @@
 				campaign: "",
 				chat: ""
 			},
+			chatApiUrl: "https://api.im.mixbench.net/v1",
+			newsApiUrl: "https://api.news01.cc/v1",
+			AdList: [{
+				uuid: newUuid(),
+				article_type: -1, //廣告類型
+				datetime: getTodayDate(),
+				title: "我成功擺脫毛囊角化症啦！偶然發現絕妙方法，親測有效的方法分享給你們",
+				cover: "https://img.alicdn.com/imgextra/i2/917298378/O1CN01j635bC2BlAwDppuwX_!!917298378.jpg",
+				source: "肌膚護理",
+				comment_count: "999+",
+				article_url: "https://www.twjpf.com",
+			}, {
+				uuid: newUuid(),
+				article_type: -1, //廣告類型
+				datetime: getTodayDate(),
+				title: "揭秘：69歲女人不長斑，“返老還童”的秘密",
+				cover: "https://img.alicdn.com/imgextra/i3/917298378/O1CN01Salypn2BlAw0fnqbp_!!917298378.jpg",
+				source: "頭條新聞",
+				comment_count: "999+",
+				article_url: "https://www.irisiii.com/",
+			}, ],
 		},
-		onLaunch: function() {
-			console.log('App Launch');
-			hideChatTabBarNotify();
-			this.init();
-		},
-		onShow: function() {
-			// console.log('App Show');
-			// this.initFullScreen();
-		},
-		onHide: function() {
-			// console.log('App Hide');
-		},
-		methods: {
-			//初始化用户信息，此处主要用于判断用户的来源，以及以往的接待的客服
-			init() {
-				let refer = getReferer() || "直接訪問";
-				if (refer == window.location.href) {
-					refer = "直接訪問"
-				}
-				getApp().globalData.referer = refer
-			},
-		},
-		mounted() {
-			if (!isMobile()) { //禁止其它設備打開dev工具
-				banDevtool()
-			}
-		}
 	};
 </script>
 
 <style>
 	/*每个页面公共css */
 	.uni-tabbar-bottom {
-		display: flex;
-		flex-direction: column;
+		display: flex !important;
+		flex-direction: column !important;
 	}
 
 	.uni-tabbar-bottom .uni-tabbar {
@@ -89,7 +79,7 @@
 	}
 
 	/* #endif */
-	
+
 	image,
 	img {
 		-webkit-user-drag: none;

@@ -106,7 +106,7 @@
 						return path
 					}
 				}
-				const baseURl = getApp().globalData.apiUrl
+				const baseURl = getApp().globalData.chatApiUrl
 				return joinPath(baseURl, path)
 			},
 			getImageUrls() {

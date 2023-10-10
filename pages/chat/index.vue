@@ -122,7 +122,8 @@
 		isSameDay,
 		msgTime,
 		msgDate,
-		showNotification
+		showNotification,
+		initNotification
 	} from "@/common/util.js";
 	import {
 		formatTimestamp
@@ -142,13 +143,10 @@
 		MediaMessageContent,
 	} from "wukongimjssdk";
 
-	getApp().globalData.apiUrl = "http://api.im.catli.net/v1";
-
 	if (!window.projectUuid) {
-		window.projectUuid = "87b28048c7af4357af08a105d92ad45a"
+		window.projectUuid = "fb4f597879834a52af08fb63cacf2963"
 	}
 
-	// const api = new chat.ChatApi(getApp().globalData.apiClient);
 	const MsgType = {
 		VisitorMsgType: 0,
 		KefuMsgType: 1,
@@ -196,10 +194,11 @@
 				},
 				addrUsed: false,
 				unreadMsgCount: 0,
+				onChatTab: true,
+				onChatPage: true,
 			}
 		},
 		created() {
-
 		},
 		async mounted() {
 			hideChatTabBarNotify();
@@ -208,9 +207,20 @@
 			this.drawerWidth = this.getWindowWidth();
 
 			let chatinputtxtE = document.querySelector(".chatinputtxt");
-			chatinputtxtE.addEventListener("keydown", this.handleKeyDown);
+			chatinputtxtE && chatinputtxtE.addEventListener("keydown", this.handleKeyDown);
 
 			await this.startup(); //上线后需要放置到mounted生命周期中
+		},
+		onShow(){
+			uni.removeTabBarBadge({
+				index: 3,
+				text: this.unreadMsgCount + ""
+			})
+			this.unreadMsgCount = 0;
+			this.onChatPage = true
+		},
+		onHide(){
+			this.onChatPage = false;
 		},
 		watch() {
 			//长度限制800
@@ -219,19 +229,8 @@
 			}
 		},
 		onLoad() {
-			if (!("Notification" in window)) {
-				console.log("This browser does not support notification functionality");
-			} else {
-				if (window.Notification.permission === "default" || window.Notification.permission === "denied") {
-					window.Notification.requestPermission().then(function(permission) {
-						if (permission === "granted") {
-							// 用户允许显示通知
-						} else if (permission === "denied") {
-							// 用户拒绝显示通知
-						}
-					});
-				}
-			}
+			initNotification();
+			this.tabSwitchHandler();
 		},
 		methods: {
 			async startup() {
@@ -257,7 +256,7 @@
 				WKSDK.shared().connectManager.addConnectStatusListener(
 					(status, reasonCode) => {
 						if (status === ConnectStatus.Connected) {
-							console.log('连接成功');
+							// console.log('连接成功');
 						} else if (status === ConnectStatus.Disconnect) {
 							if (this.addrUsed && this.wsaddrs.length > 1) {
 								const oldwsAddr = this.wsaddrs[0]
@@ -267,7 +266,7 @@
 								console.log("连接失败！切换地址->", this.wsaddrs)
 							}
 						} else {
-							console.log('连接失败', reasonCode); //  reasonCode: 2表示认证失败（uid或token错误）
+							console.error('连接失败', reasonCode); //  reasonCode: 2表示认证失败（uid或token错误）
 						}
 					},
 				);
@@ -291,8 +290,10 @@
 					//缓存至本地: 1.先读取，再写入
 					this.saveCacheMessages(this.massageStore);
 					//消息提醒
-					this.messageNotification(message);
+					// this.messageNotification(message);
 					this.notifyMessage(message);
+					//来消息通知了，则应该混动到消息窗口最底部
+					this.scrollBottom();
 				});
 				// 提供频道内消息同步的数据源
 				WKSDK.shared().config.provider.syncMessagesCallback = async (channel, opts) => {
@@ -310,38 +311,79 @@
 					this.massageStore.push(...messages);
 				}
 			},
+			tabSwitchHandler() {
+				const _this = this
+				if (typeof document.hidden !== "undefined") {
+					// 添加监听事件
+					document.addEventListener("visibilitychange", function() {
+						_this.onChatTab = !document.hidden
+					});
+				} else {
+					console.log("當前瀏覽器不支持 Page Visibility API");
+				}
+			},
 			notifyMessage(message) {
+				//如果還在當前浏览器标签页，同时也在聊天窗口，则啥也不通知
+				if (this.onChatPage && this.onChatTab) return;
+				
+				if (this.unreadMsgCount < 0) {
+					this.unreadMsgCount = 0
+				}
+
+				this.unreadMsgCount++
+				if (this.unreadMsgCount > 0) {
+					uni.setTabBarBadge({
+						index: 3,
+						text: this.unreadMsgCount + ""
+					})
+				}
+				//如果在当前浏览器标签页，也在当前页面，则不用调用浏览器进行通知
+				
+
 				const isSelf = this.authMsgFromSelf(message);
 				if (isSelf) return
-
 				if (window.Notification.permission !== 'granted') return;
-				let content = "";
-				if (typeof this.msg?.contentType !== "number") return false
-				let contentType = this.msg.content.realContentType || this.msg.content._contentType || this.msg.content
-					?.contentObj?.type
+				let notiContent = "";
+				const msg = message;
+				let contentType = msg.content.realContentType || msg.content._contentType || msg.content?.contentObj?.type
+				const handlerText = () => {
+					let text = msg.content.text || msg.content?.contentObj?.content
+					if (typeof text !== "string") {
+						return false
+					}
+					text = text.trim()
+					if (text.length === 0) return false;
+					notiContent = text
+					return true
+				}
+				const handlerImg = () => {
+					let url = msg.content?.contentObj?.url
+					if (!url) return false
+					url = url + ""
+					if (url.trim().length === 0) return false
+					notiContent = [圖片]
+					return true
+				}
 				switch (contentType) {
-					case 1, undefined:
+					case 1:
 						//文本消息
-						let text = this.msg.content.text || this.msg.content?.contentObj?.content
-						if (typeof text !== "string") {
-							return false
-						}
-						text = text.trim()
-						if (text.length === 0) return false;
-						content = text
+						if (!handlerText()) return false
+						break
+					case undefined:
+						//默认当做文本消息处理
+						if (!handlerText()) return false
+						break
 					case 2:
 						//图片消息
-						let url = this.msg.content?.contentObj?.url
-						if (!url) return false
-						url = url + ""
-						if (url.trim().length === 0) return false
-						content = [圖片]
+						if (!handlerImg()) return false
+						break
 					default:
 						//其它类型消息，暂不支持
 						return false
 				}
+
 				showNotification("新訊息", {
-					body: content,
+					body: notiContent,
 					icon: "/static/favicon.ico" // 可选的图标路径
 				}, () => {
 					uni.switchTab({
@@ -355,7 +397,7 @@
 			},
 			//用户登录
 			async visitorLogin() {
-				if (!getApp().globalData.apiUrl) return
+				if (!getApp().globalData.chatApiUrl) return
 				const cacheValue = localStorage.getItem("loginInfo")
 				let loginInfo = null
 				try {
@@ -365,7 +407,7 @@
 				}
 
 				const _this = this
-				return axios.post(`${getApp().globalData.apiUrl}/visitor/login`, {
+				return axios.post(`${getApp().globalData.chatApiUrl}/visitor/login`, {
 						"platform": window.navigator.platform,
 						"referer": window.location.href,
 						"projectUuid": window.projectUuid,
@@ -383,7 +425,7 @@
 			},
 			async getWsaddrs() {
 				// if (!this.loginInfo || !this.loginInfo.uuid) return [];
-				return axios.get(`${getApp().globalData.apiUrl}/users/${this.loginInfo.uuid}/im`).then(resp => {
+				return axios.get(`${getApp().globalData.chatApiUrl}/users/${this.loginInfo.uuid}/im`).then(resp => {
 					const data = resp.data
 					let addr = data.wss_addr
 					if (!addr || addr === '') {
@@ -585,20 +627,6 @@
 				let getWindowInfo = uni.getWindowInfo();
 				return getWindowInfo.windowWidth
 			},
-			messageNotification(message) {
-				//todo: 监听是否处于当前窗口
-				if (this.unreadMsgCount < 1) {
-					uni.removeTabBarBadge({
-						index: 3
-					})
-					return
-				}
-				uni.setTabBarBadge({
-					index: 3,
-					text: this.unreadMsgCount + ""
-				})
-
-			}
 		},
 	}
 

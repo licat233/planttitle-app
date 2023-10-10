@@ -8,7 +8,7 @@
 		</template>
 		<template v-else>
 			<view class="banner" auto-focus>
-				<image class="banner-img" :src="banner.image_url"></image>
+				<image class="banner-img" :src="banner.cover"></image>
 				<view class="title-area">
 					<text class="title-text">{{banner.title}}</text>
 				</view>
@@ -20,15 +20,57 @@
 				<text class="article-meta-text article-time">{{banner.datetime}}</text>
 			</view>
 			<view class="article-content">
-				<rich-text :nodes="content" style="font-size: 14px;"></rich-text>
+				<!-- <div class="htmlContent" v-html="htmlContent" style="font-size: 14px;"></div> -->
+				<rich-text :nodes="content"></rich-text>
+				<view class="article-more">
+					<text class="maylike">猜你喜歡</text>
+					<uni-list>
+						<view v-for="item in mores" :key="item.uuid">
+							<uni-list-item :title="item.title" :thumb="item.cover" :clickable="true"
+								@click="item.click"></uni-list-item>
+						</view>
+					</uni-list>
+				</view>
+				<view class="declare-box">
+					<text class="declare-title" @click="()=>this.$refs.declarePopup.open()">
+						免責聲明
+					</text>
+					<uni-popup class="declare-popup" ref="declarePopup" type="center" :show-overlay="true">
+						<view class="declare-tools">
+							<text style="text-align: center;">免責聲明</text>
+						</view>
+						<view class="declare-text">
+							歡迎使用本網站。請在使用本網站的服務前仔細閱讀以下條款和條件。訪問或使用本網站意味著您同意接受這些條款和條件。
+
+							<br />本網站提供的內容和服務的來源均為網路上使用者自發分享，不代表本網站立場或觀點。本網站無法控制這些內容的來源和準確度，因此不對使用者在本網站上發布的內容負責。
+
+							<br />所有使用者在本網站上發布的內容均已經過網路審核，以確保其符合相關法律法規的規定。然而，本網站不保證這些內容的準確性、完整性、及時性或適用性。同時，本網站也不對使用或依賴於這些內容所引起的任何損失或損害負責。
+
+							<br />本網站盡力確保資訊安全和隱私保護，但無法完全消除由於駭客攻擊、電腦病毒或其他可破壞性因素造成的風險。如果您發現您的個人資訊已遭非法使用，請立即聯繫我們。
+
+							<br />在任何情況下，本網站都不對使用或無法使用本網站的行為所導致的任何直接或間接損失或損害承擔責任，包括但不限於利潤損失、商業中斷、軟體或硬體故障等。
+
+							<br />本網站可能會提供與其他網站的連結，但本網站對這些網站的內容和隱私保護措施不負任何責任。如果您通過訪問這些連結而遭受了任何損失或損害，本網站不承擔任何責任。
+
+							<br />本網站保留隨時修改這些條款和條件的權利。在本網站發布新條款和條件後，您的繼續使用本網站將意味著您同意這些新條款和條件。
+
+							<br />如果您認為本網站上的任何內容侵犯了您的知識產權，請與我們聯繫。我們將儘快審核您的申訴，並採取適當的措施。
+						</view>
+						<!-- 	<view class="declare-tools">
+							<button type="default" class="declare-close" @click="this.$refs.declarePopup.close()">關閉</button>
+						</view> -->
+					</uni-popup>
+				</view>
 			</view>
 		</template>
 		<view class="comment-wrap"></view>
+		<view class="blank"></view>
 	</view>
 </template>
 
 <script>
 	import htmlParser from '@/common/html-parser'
+	import dayjs from "dayjs";
 
 	const FAIL_CONTENT = '<p>獲取信息失敗</p>';
 
@@ -56,12 +98,15 @@
 			return {
 				banner: {},
 				content: [],
+				mores: [],
+				htmlContent: "",
+				adItems: getApp().globalData.AdList || [],
 			}
 		},
 		onShareAppMessage() {
 			return {
 				title: this.banner.title,
-				path: '/pages/news/detail?query=' + JSON.stringify(this.banner)
+				path: '/pages/news/detail?query=' + encodeURIComponent(JSON.stringify(this.banner))
 			}
 		},
 		onLoad(event) {
@@ -91,14 +136,20 @@
 				});
 
 				this.getDetail();
+				this.getMoreArticles();
 			},
 			getDetail() {
+				const _this = this
 				uni.request({
-					url: 'https://unidemo.dcloud.net.cn/api/news/36kr/' + this.banner.post_id,
+					data: {
+						uuid: this.banner.uuid,
+					},
+					url: getApp().globalData.newsApiUrl + '/news/details',
 					success: (result) => {
 						let content = FAIL_CONTENT
 						if (result.statusCode == 200) {
-							content = result.data.content
+							content = result.data.HtmlContent.String
+							content = _this.parseHtmlContent(content)
 						}
 						const nodes = htmlParser(content);
 						// #ifdef APP-PLUS-NVUE
@@ -107,7 +158,107 @@
 						this.content = nodes
 					}
 				});
-			}
+			},
+			getMoreArticles() {
+				const _this = this
+				uni.request({
+					data: {
+						uuid: this.banner.uuid,
+					},
+					url: getApp().globalData.newsApiUrl + '/news/more',
+					success: (result) => {
+						let data = FAIL_CONTENT
+						if (result.statusCode == 200 && Array.isArray(result.data)) {
+							data = result.data.map(news => {
+								return {
+									uuid: news.Uuid,
+									article_type: 1,
+									datetime: dayjs(news.PublishAt).format(
+										'YYYY/MM/DD'
+									),
+									title: news.Title,
+									cover: news.Cover,
+									source: news.Author,
+									comment_count: news.CommentsCount || 0,
+								}
+							})
+						}
+
+						this.adItems.forEach(item => {
+							this.insertRandomElement(data, item)
+						});
+						if (Array.isArray(data)) {
+							for (let i = 0; i < data.length; i++) {
+								data[i].click = () => _this.goMoreDetail(data[i])
+							}
+						}
+						this.mores = data;
+						// console.log(data)
+					}
+				});
+			},
+			parseHtmlContent(content) {
+				let containeE = document.createElement('div')
+				containeE.insertAdjacentHTML("afterbegin", content)
+				let contentE = containeE.firstChild
+				let figureEs = contentE.querySelectorAll("figure[class='img-container']");
+				for (let i = 0; i < figureEs.length; i++) {
+					let figureE = figureEs[i];
+					let imgE = figureE.querySelector('img')
+					if (imgE) {
+						let imgSrc = imgE.dataset.src;
+						if (imgSrc) {
+							let newImgE = document.createElement('img')
+							newImgE.src = imgSrc
+							figureE.insertAdjacentElement("beforebegin", newImgE);
+						}
+					}
+					let parentE = figureE.parentElement
+					parentE.removeChild(figureE);
+				}
+				return containeE.innerHTML
+			},
+			insertRandomElement(arr, value) {
+				const randIndex = Math.floor(Math.random() * (arr.length + 1));
+				arr.splice(randIndex, 0, value);
+			},
+			// createBanner(article) {
+			// 	console.log(article)
+			// 	if (article.article_type !== 1) {
+			// 		return article
+			// 	}
+			// 	return {
+			// 		article_type: article.article_type || 1,
+			// 		title: article.Title,
+			// 		uuid: article.Uuid,
+			// 		cover: article.Cover,
+			// 		source: article.Author,
+			// 		datetime: dayjs(article.PublishAt).format('YYYY/MM/DD'),
+			// 	}
+			// },
+			goMoreDetail(item) {
+				if (this._isWidescreen) { //若为宽屏，则触发右侧详情页的自定义事件
+					let eventName = 'articleDetail';
+					if (item.article_type === -1) {
+						eventName = 'adDetail'
+					}
+					uni.$emit(eventName, {
+						detail: encodeURIComponent(JSON.stringify(item))
+					})
+					return
+				}
+				let query = encodeURIComponent(JSON.stringify(item))
+				let url = '/pages/news/detail?query=' + query
+				if (item.article_type === -1) {
+					url = '/pages/news/ad?query=' + query
+				}
+				uni.navigateTo({
+					url: url,
+					fail: (res) => {
+						// console.log(res.errMsg)
+					}
+				});
+			},
 		},
 		mounted() {
 			uni.showTabBar();
@@ -119,16 +270,9 @@
 	/* #ifndef APP-PLUS */
 	page {
 		min-height: 100%;
-		height: 100%;
 	}
 
 	/* #endif */
-
-	.content {
-		min-height: 100%;
-		height: 100%;
-	}
-
 
 	.banner {
 		height: 180px;
@@ -148,7 +292,6 @@
 		right: 15px;
 		bottom: 15px;
 		z-index: 11;
-		display: none;
 	}
 
 	.title-text {
@@ -160,20 +303,19 @@
 		overflow: hidden;
 	}
 
-	.article-title {
-		padding: 10px 15px 0px;
-	}
-
-	.article-title-text {
-		font-size: 26px;
-	}
-
-
 	.article-meta {
 		padding: 10px 15px;
 		flex-direction: row;
 		align-items: center;
 		justify-content: flex-start;
+	}
+	
+	.article-title {
+		padding: 10px;
+	}
+
+	.article-title-text {
+		font-size: 24px;
 	}
 
 	.article-meta-text {
@@ -181,34 +323,53 @@
 	}
 
 	.article-text {
-		font-size: 12px;
+		font-size: 14px;
 		line-height: 25px;
 		margin: 0 10px;
 	}
 
 	.article-author {
-		font-size: 15px;
+		font-size: 14px;
 	}
 
 	.article-time {
-		font-size: 15px;
+		font-size: 14px;
 	}
 
 	.article-content {
-		font-size: 15px;
+		font-size: 18px;
 		padding: 0 15px;
 		margin-bottom: 15px;
 		overflow: hidden;
-		height: 100%;
-		min-height: 100%;
 	}
 
-	.article-content::after {
-		content: "";
-		display: block;
-		height: calc(56px + env(safe-area-inset-bottom) + 15px);
-		width: 100%;
-		background: transparent;
+	.article-more {
+		margin-top: 50px;
+	}
+
+	.declare-box {
+		margin-top: 20px;
+	}
+
+	.declare-title {
+		font-size: 14px;
+		/* color: #484848; */
+		color: darkblue;
+	}
+
+	.declare-text {
+		background-color: #ffffff;
+		overflow-y: auto;
+		max-height: 50vh;
+		padding: 10px;
+	}
+
+	.declare-tools {
+		background-color: cornflowerblue;
+	}
+
+	.declare-close {
+		background-color: cornflowerblue;
 	}
 
 	/* #ifdef H5 */
@@ -222,4 +383,14 @@
 	}
 
 	/* #endif */
+	.blank {
+		width: 100%;
+		height: var(--tab-bar-height);
+	}
+
+	.maylike {
+		background-color: beige;
+		color: blueviolet;
+		font-weight: bold;
+	}
 </style>
