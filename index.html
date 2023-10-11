@@ -3,14 +3,17 @@
 	<head>
 		<meta charset="UTF-8" />
 		<link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon">
-		<meta name="keywords" content="植題,planttitle" />
-		<meta name="description" content="植題官方app" />
+		<meta name="keywords" content="新聞資訊,news" />
+		<meta name="description" content="新聞資訊" />
 		<script>
 			let coverSupport = 'CSS' in window && typeof CSS.supports === 'function' && (CSS.supports('top: env(a)') ||
 				CSS.supports('top: constant(a)'))
 			document.write(
 				'<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0' +
 				(coverSupport ? ', viewport-fit=cover' : '') + '" />');
+			window.news = {
+				adData: []
+			}
 		</script>
 		<title></title>
 		<!--preload-links-->

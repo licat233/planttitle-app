@@ -78,7 +78,7 @@
 					contentnomore: ''
 				},
 				refreshIcon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAB5QTFRFcHBw3Nzct7e39vb2ycnJioqK7e3tpqam29vb////D8oK7wAAAAp0Uk5T////////////ALLMLM8AAABxSURBVHja7JVBDoAgDASrjqj//7CJBi90iyYeOHTPMwmFZrHjYyyFYYUy1bwUZqtJIYVxhf1a6u0R7iUvWsCcrEtwJHp8MwMdvh2amHduiZD3rpWId9+BgPd7Cc2LIkPyqvlQvKxKBJ//Qwq/CacAAwDUv0a0YuKhzgAAAABJRU5ErkJggg==",
-				adItems: getApp().globalData.AdList || [],
+				adItems: getApp().globalData.adItems || [],
 				lastAdIndex: 0,
 				length: 0,
 			}
@@ -121,14 +121,13 @@
 						if (!Array.isArray(data)) return
 						this.isNoData = (data.length <= 0);
 						let counter = this.dataList.length;
-						let adCount = 0
 						const data_list = [];
 						data.forEach(news => {
 							counter++
 							if (counter % 10 === 0) {
 								const adItem = this.getAdItem();
+								if (!adItem) return
 								data_list.push(adItem);
-								adCount++
 							}
 							const item = {
 								uuid: news.Uuid,
