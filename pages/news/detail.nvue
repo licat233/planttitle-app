@@ -27,7 +27,7 @@
 					<uni-list>
 						<view v-for="item in mores" :key="item.uuid">
 							<uni-list-item :title="item.title" :thumb="item.cover" :clickable="true"
-								@click="item.click"></uni-list-item>
+								@click="item.click" thumb-size="lg" :time="item.datetime"></uni-list-item>
 						</view>
 					</uni-list>
 				</view>

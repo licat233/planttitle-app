@@ -1,1 +1,0 @@
-import{_ as a,o as s,c as t,w as e,j as n,d as o}from"./index-bcf08d19.js";const r=a({data:()=>({}),methods:{}},[["render",function(a,r,d,c,u,f){const l=n;return s(),t(l,null,{default:e((()=>[o(" center ")])),_:1})}]]);export{r as default};

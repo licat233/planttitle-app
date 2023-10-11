@@ -8,7 +8,7 @@
 				:class="{'image-section-right': newsItem.article_type === 2, 'image-section-left': newsItem.article_type === 1}">
 				<image :fade-show="false" class="image-list1"
 					:class="{'image-list2': newsItem.article_type === 1 || newsItem.article_type === 2}"
-					v-if="newsItem.cover" :src="newsItem.cover"></image>
+					v-if="newsItem.cover" :src="newsItem.cover" :draggable="false" @error="imageErrorHandler"></image>
 				<template v-if="newsItem.image_list">
 					<image :fade-show="false" class="image-list3" :src="source.url"
 						v-for="(source, i) in newsItem.image_list" :key="i" />
@@ -47,7 +47,19 @@
 			close(e) {
 				e.stopPropagation();
 				this.$emit('close');
-			}
+			},
+			imageErrorHandler(event){
+				return
+				const msg = event.detail.errMsg
+				if (msg.indexOf("Not Found") !== -1){
+					// 通告服务器，该img图片不可加载
+					uni.request({
+						url: getApp().globalData.newsApiUrl + "/news/feedback",
+						method: "POST",
+						data: {uuid: this.newsItem.uuid, field: "cover"}
+					})
+				}
+			},
 		}
 	}
 </script>
