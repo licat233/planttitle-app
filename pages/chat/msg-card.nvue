@@ -8,7 +8,7 @@
 			<template v-if="!self">
 				<view class="friendchatcard">
 					<view class="chatavatar">
-						<image @click="showInfo()" class="chatavatar-img" v-bind:src="waiterAvatar">
+						<image @click="showInfo()" class="chatavatar-img" v-bind:src="kefuAvatar">
 						</image>
 					</view>
 					<view class="chatmessage">
@@ -65,11 +65,14 @@
 			showInfo: {
 				type: Function,
 				default: function() {}
+			},
+			kefuAvatar: {
+				type: String,
+				default: "https://img.alicdn.com/imgextra/i4/917298378/O1CN01ERi1jA2BlB7YwHlO8_!!917298378.png"
 			}
 		},
 		data() {
 			return {
-				waiterAvatar: "https://img.alicdn.com/imgextra/i1/917298378/O1CN01Su4K112BlAqorDkFr_!!917298378.jpg",
 				msgTime: this.msgTimeFormat(),
 				show: this.verifyMsg(),
 				self: this.authMsgFromSelf(this.msg),
@@ -91,13 +94,20 @@
 				if (typeof this.msg?.contentType !== "number") return false
 				let contentType = this.msg.content.realContentType || this.msg.content._contentType ||  this.msg.content?.contentObj?.type
 				switch (contentType) {
-					case 1, undefined:
+					case 1:
 						//默认为文本消息
 						let text = this.msg.content.text || this.msg.content?.contentObj?.content
 						if (typeof text !== "string") {
 							return false
 						}
 						return text.trim().length !== 0
+					case undefined:
+						//默认为文本消息
+						let text1 = this.msg.content.text || this.msg.content?.contentObj?.content
+						if (typeof text1 !== "string") {
+							return false
+						}
+						return text1.trim().length !== 0
 					case 2:
 						//图片消息
 						let url = this.msg.content?.contentObj?.url
@@ -110,7 +120,7 @@
 				}
 			},
 			authMsgFromSelf(msg) {
-				return msg.fromUID === getApp().globalData.chatUid || msg.channel.channelID !== msg.fromUID
+				return msg.fromUID === getApp().globalData.chatUid // || msg.channel.channelID !== msg.fromUID
 			},
 		},
 	};

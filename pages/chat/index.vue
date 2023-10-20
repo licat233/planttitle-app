@@ -37,7 +37,7 @@
 										class="uni-list-item_chat" :border="false">
 										<template v-slot:body>
 											<msg-card :msg="msg" :msgList="massageStore" :isShowDate="isShowDate(index)"
-												:showInfo="showInfoDrawer">
+												:showInfo="showInfoDrawer" :kefuAvatar="getKefuAvatar(loginInfo.kefu_uid)">
 											</msg-card>
 										</template>
 									</uni-list-item>
@@ -136,11 +136,10 @@
 	import axios from "axios";
 	import {
 		Channel,
-		ChannelTypePerson,
 		WKSDK,
 		ConnectStatus,
 		MessageText,
-		MediaMessageContent,
+		MediaMessageContent
 	} from "wukongimjssdk";
 
 	if (!window.projectUuid) {
@@ -156,6 +155,11 @@
 		offlineMsgType: 5
 	};
 
+	const ChannelTypeGroup = 2;
+
+	const cacheInfoKey = "info-" + window.projectUuid;
+	const cacheMessagesKey = "messages-" + window.projectUuid;
+
 	export default {
 		components: {
 			msgCard,
@@ -169,7 +173,6 @@
 				placeholdertext: "Aa",
 				inputContext: "",
 				massageStore: [],
-				waiterAvatar: "https://img.alicdn.com/imgextra/i1/917298378/O1CN01Su4K112BlAqorDkFr_!!917298378.jpg",
 				isShowInfo: false,
 				scroller: {
 					top: 0,
@@ -191,6 +194,7 @@
 					"user_uid": "",
 					"kefu_uid": "",
 					"project_uid": window.projectUuid,
+					"channel_uid": "",
 				},
 				addrUsed: false,
 				unreadMsgCount: 0,
@@ -198,8 +202,7 @@
 				onChatPage: true,
 			}
 		},
-		created() {
-		},
+		created() {},
 		async mounted() {
 			hideChatTabBarNotify();
 			this.chatInputInitHeight = this.getChatinputboxHeight() + "px";
@@ -211,7 +214,7 @@
 
 			await this.startup(); //上线后需要放置到mounted生命周期中
 		},
-		onShow(){
+		onShow() {
 			uni.removeTabBarBadge({
 				index: 3,
 				text: this.unreadMsgCount + ""
@@ -219,7 +222,7 @@
 			this.unreadMsgCount = 0;
 			this.onChatPage = true
 		},
-		onHide(){
+		onHide() {
 			this.onChatPage = false;
 		},
 		watch() {
@@ -273,19 +276,19 @@
 				// 消息发送状态监听
 				WKSDK.shared().chatManager.addMessageStatusListener((packet) => {
 					// console.log('消息clientSeq->', packet.clientSeq); // 客户端序号用来匹配对应的发送的消息
-					// if (packet.reasonCode === 1) {
-					// 	// 发送成功
-					// 	console.log("发送成功")
-					// } else {
-					// 	// 发送失败
-					// 	console.log("发送失败")
-					// }
+					if (packet.reasonCode === 1) {
+						// 发送成功
+						// console.log("发送成功")
+					} else {
+						// 发送失败
+						console.log("发送失败")
+					}
 				});
 				// 消息监听
 				WKSDK.shared().chatManager.addMessageListener((message) => {
 					// console.log(message)
-					//只接收个人频道的消息
-					if (message.channel.channelType !== ChannelTypePerson) return;
+					//只接收群频道的消息
+					if (message.channel.channelType !== ChannelTypeGroup) return;
 					this.massageStore.push(message);
 					//缓存至本地: 1.先读取，再写入
 					this.saveCacheMessages(this.massageStore);
@@ -325,7 +328,7 @@
 			notifyMessage(message) {
 				//如果還在當前浏览器标签页，同时也在聊天窗口，则啥也不通知
 				if (this.onChatPage && this.onChatTab) return;
-				
+
 				if (this.unreadMsgCount < 0) {
 					this.unreadMsgCount = 0
 				}
@@ -338,7 +341,7 @@
 					})
 				}
 				//如果在当前浏览器标签页，也在当前页面，则不用调用浏览器进行通知
-				
+
 
 				const isSelf = this.authMsgFromSelf(message);
 				if (isSelf) return
@@ -393,12 +396,12 @@
 			},
 			//发送message
 			sendMessage(message) {
-				WKSDK.shared().chatManager.send(message, new Channel(this.loginInfo.kefu_uid, ChannelTypePerson))
+				WKSDK.shared().chatManager.send(message, new Channel(this.loginInfo.channel_uid, ChannelTypeGroup))
 			},
 			//用户登录
 			async visitorLogin() {
 				if (!getApp().globalData.chatApiUrl) return
-				const cacheValue = localStorage.getItem("loginInfo")
+				const cacheValue = localStorage.getItem(cacheInfoKey)
 				let loginInfo = null
 				try {
 					loginInfo = JSON.parse(cacheValue)
@@ -415,8 +418,8 @@
 					})
 					.then(function(response) {
 						_this.loginInfo = response.data;
-						localStorage.setItem("loginInfo", JSON.stringify(response.data));
-						getApp().globalData.chatUid = response.data?.user_uid || ""
+						localStorage.setItem(cacheInfoKey, JSON.stringify(response.data));
+						getApp().globalData.chatUid = _this.loginInfo.user_uid || ""
 						return response.data
 					})
 					.catch(function(error) {
@@ -435,8 +438,7 @@
 				})
 			},
 			getCacheMessages() {
-				const key = "chatonlineMessages";
-				const messagesText = localStorage.getItem(key);
+				const messagesText = localStorage.getItem(cacheMessagesKey);
 				let messages = [];
 				try {
 					messages = JSON.parse(messagesText);
@@ -444,7 +446,7 @@
 					//TODO handle the exception
 				} finally {
 					if (!Array.isArray(messages)) {
-						localStorage.removeItem(key);
+						localStorage.removeItem(cacheMessagesKey);
 						messages = [];
 					}
 				}
@@ -452,11 +454,10 @@
 			},
 			saveCacheMessages(messages) {
 				const messagesText = JSON.stringify(messages);
-				const key = "chatonlineMessages";
-				localStorage.setItem(key, messagesText);
+				localStorage.setItem(cacheMessagesKey, messagesText);
 			},
 			authMsgFromSelf(msg) {
-				return msg.fromUID === getApp().globalData.chatUid || msg.channel.channelID !== msg.fromUID
+				return msg.fromUID === getApp().globalData.chatUid // || msg.channel.channelID !== msg.fromUID
 			},
 			showChattoolright: function() {
 				this.style.display = "";
@@ -626,6 +627,36 @@
 			getWindowWidth() {
 				let getWindowInfo = uni.getWindowInfo();
 				return getWindowInfo.windowWidth
+			},
+			verifyMsg(msg) {
+				if (msg.channel.channelType !== channelType) return false;
+				if (typeof msg.contentType !== "number" && typeof msg.contentType !== "undefined") return false
+				const contentType = getMessageType(msg)
+				switch (contentType) {
+					case 1:
+						//默认为文本消息
+						const text = msg.content.text || msg.content?.contentObj?.content
+						if (typeof text !== "string") {
+							return false
+						}
+						return text.trim().length !== 0;
+					case 2:
+						//图片消息
+						let url = msg.content?.contentObj?.url
+						if (!url) return false
+						url = url + ""
+						return url.trim().length !== 0
+					default:
+						//其它类型消息，暂不支持
+						return false
+				}
+			},
+			getMessageType(msg) {
+				return (msg.content?.realContentType || msg.content?._contentType || msg.content?.contentObj?.type) ?? 1
+			},
+			getKefuAvatar(kefu_uid) {
+				const apiUrl = getApp().globalData.chatApiUrl;
+				return `${apiUrl}/users/${kefu_uid}/avatar`;
 			},
 		},
 	}

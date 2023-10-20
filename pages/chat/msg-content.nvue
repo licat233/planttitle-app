@@ -66,7 +66,7 @@
 				return this.msg.content._contentType
 			},
 			authMsgFromSelf(msg) {
-				return msg.fromUID === getApp().globalData.chatUid || msg.channel.channelID !== msg.fromUID
+				return msg.fromUID === getApp().globalData.chatUid // || msg.channel.channelID !== msg.fromUID
 			},
 			messageTextContentHandle() {
 				let msg = this.msg || {};
@@ -87,7 +87,6 @@
 					aE.setAttribute("target", "_blank");
 				});
 				let code = divE.innerHTML
-
 				return code;
 			},
 			getImageSrc(msgContent) {
