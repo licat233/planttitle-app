@@ -37,7 +37,8 @@
 										class="uni-list-item_chat" :border="false">
 										<template v-slot:body>
 											<msg-card :msg="msg" :msgList="massageStore" :isShowDate="isShowDate(index)"
-												:showInfo="showInfoDrawer" :kefuAvatar="getKefuAvatar(loginInfo.kefu_uid)">
+												:showInfo="showInfoDrawer"
+												:kefuAvatar="getKefuAvatar(loginInfo.kefu_uid)">
 											</msg-card>
 										</template>
 									</uni-list-item>
@@ -141,6 +142,10 @@
 		MessageText,
 		MediaMessageContent
 	} from "wukongimjssdk";
+	import {
+		decryptJsonBase64Data,
+		encryptData
+	} from "../../common/crypto";
 
 	if (!window.projectUuid) {
 		window.projectUuid = "fb4f597879834a52af08fb63cacf2963"
@@ -402,25 +407,36 @@
 			async visitorLogin() {
 				if (!getApp().globalData.chatApiUrl) return
 				const cacheValue = localStorage.getItem(cacheInfoKey)
-				let loginInfo = null
+				let info = null
 				try {
-					loginInfo = JSON.parse(cacheValue)
+					info = JSON.parse(cacheValue)
 				} catch (e) {
 					//TODO handle the exception
 				}
 
 				const _this = this
-				return axios.post(`${getApp().globalData.chatApiUrl}/visitor/login`, {
-						"platform": window.navigator.platform,
-						"referer": window.location.href,
-						"projectUuid": window.projectUuid,
-						"token": loginInfo?.token || "",
-					})
+				const data = {
+					"platform": window.navigator.platform,
+					"referer": window.location.href,
+					"projectUuid": window.projectUuid,
+					"token": info?.token || "",
+				}
+				return axios.post(`${getApp().globalData.chatApiUrl}/visitor/login`, encryptData(data))
 					.then(function(response) {
-						_this.loginInfo = response.data;
-						localStorage.setItem(cacheInfoKey, JSON.stringify(response.data));
-						getApp().globalData.chatUid = _this.loginInfo.user_uid || ""
-						return response.data
+						const base64Data = response.data
+						const jsonStr = decryptJsonBase64Data(base64Data)
+						try {
+							const data = JSON.parse(jsonStr)
+							_this.loginInfo = data
+							localStorage.setItem(cacheInfoKey, JSON.stringify({
+								token: data.token
+							}));
+							getApp().globalData.chatUid = data.user_uid
+							return info
+						} catch (error) {
+							console.log(error)
+						}
+						return null;
 					})
 					.catch(function(error) {
 						console.log(error);
