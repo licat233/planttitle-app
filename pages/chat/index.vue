@@ -124,7 +124,9 @@
 		msgTime,
 		msgDate,
 		showNotification,
-		initNotification
+		initNotification,
+		isThirtyMinutesAgo,
+		isTimestamp
 	} from "@/common/util.js";
 	import {
 		formatTimestamp
@@ -406,10 +408,28 @@
 			//用户登录
 			async visitorLogin() {
 				if (!getApp().globalData.chatApiUrl) return
-				const cacheValue = localStorage.getItem(cacheInfoKey)
+				const base64Data = localStorage.getItem(cacheInfoKey)
 				let info = null
+				const cacheLastLoginTimeKey = "lastLoginAt"
 				try {
-					info = JSON.parse(cacheValue)
+					if (base64Data) {
+						const jsonStr = decryptJsonBase64Data(base64Data)
+						info = JSON.parse(jsonStr)
+						this.loginInfo = info;
+						//防止刷新时，频繁登录
+						const lastLoginAtValue = localStorage.getItem(cacheLastLoginTimeKey);
+						if (lastLoginAtValue) {
+							const lastLoginAt = parseInt(lastLoginAtValue)
+							if (!isTimestamp(lastLoginAt)) {
+								localStorage.removeItem(cacheLastLoginTimeKey);
+							} else {
+								if (!isThirtyMinutesAgo(lastLoginAt)) {
+									//如果不是30分钟前登录的，则无需再次登录，直接返回
+									return info
+								}
+							}
+						}
+					}
 				} catch (e) {
 					//TODO handle the exception
 				}
@@ -428,10 +448,9 @@
 						try {
 							const data = JSON.parse(jsonStr)
 							_this.loginInfo = data
-							localStorage.setItem(cacheInfoKey, JSON.stringify({
-								token: data.token
-							}));
+							localStorage.setItem(cacheInfoKey, base64Data);
 							getApp().globalData.chatUid = data.user_uid
+							localStorage.setItem(cacheLastLoginTimeKey, Date.now().toString());
 							return info
 						} catch (error) {
 							console.log(error)

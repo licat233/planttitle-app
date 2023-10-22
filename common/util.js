@@ -400,6 +400,19 @@ export const newUuid = () => {
 		.toLowerCase();
 }
 
+export function isThirtyMinutesAgo(timestamp) {
+	const currentTime = Date.now();
+	const thirtyMinutesAgo = currentTime - 30 * 60 * 1000; // 30分钟的毫秒数
+	return timestamp < thirtyMinutesAgo;
+}
+
+export function isTimestamp(timestamp) {
+    if(isNaN(timestamp)) return false
+    const s = timestamp + "";
+    var regex = /^\d{10,13}$/; // 匹配10位或13位数字
+    return regex.test(s);
+}
+
 export {
 	friendlyDate,
 	msgDate,
