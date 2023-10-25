@@ -10,10 +10,11 @@ export function encryptData(data: any): string {
 }
 
 //解密base64编码的json字符串
-export function decryptJsonBase64Data(data: string): string {
+export function decryptJsonBase64Data(data: string, time: Date = new Date()): string {
     // 将 Base64 编码的字符串解码为原始字符串
     data = window.atob(data)
-    const decryptData = decryptJSONString(data)
+    const secretKey = genSecretKey(time)
+    const decryptData = decryptJSONString(data, secretKey)
     return decryptData
 }
 

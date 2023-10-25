@@ -33,12 +33,11 @@
 								:scroll-top="scroller.top" :upper-threshold="0" scroll-anchoring
 								@scrolltoupper="loadmore">
 								<uni-list ref="chatList" class="uni-list_chat">
-									<uni-list-item v-for="(msg, index) in massageStore" :key="msg.uuid"
+									<uni-list-item v-for="(msg, index) in massageStore" :key="msg.messageID"
 										class="uni-list-item_chat" :border="false">
 										<template v-slot:body>
 											<msg-card :msg="msg" :msgList="massageStore" :isShowDate="isShowDate(index)"
-												:showInfo="showInfoDrawer"
-												:kefuAvatar="getKefuAvatar(loginInfo.kefu_uid)">
+												:showInfo="showInfoDrawer" :kefuAvatar="getKefuAvatar(msg)">
 											</msg-card>
 										</template>
 									</uni-list-item>
@@ -126,7 +125,9 @@
 		showNotification,
 		initNotification,
 		isThirtyMinutesAgo,
-		isTimestamp
+		isTimestamp,
+		getOperatingSystem,
+		loadLastLoginTime
 	} from "@/common/util.js";
 	import {
 		formatTimestamp
@@ -142,7 +143,8 @@
 		WKSDK,
 		ConnectStatus,
 		MessageText,
-		MediaMessageContent
+		MediaMessageContent,
+		PullMode
 	} from "wukongimjssdk";
 	import {
 		decryptJsonBase64Data,
@@ -164,8 +166,9 @@
 
 	const ChannelTypeGroup = 2;
 
-	const cacheInfoKey = "info-" + window.projectUuid;
+	const cacheLoginInfoKey = "info-" + window.projectUuid;
 	const cacheMessagesKey = "messages-" + window.projectUuid;
+	const cacheLastLoginTimeKey = "visitorLastLoginAt";
 
 	export default {
 		components: {
@@ -196,17 +199,31 @@
 				// reloginCount: 0,
 				isloadrecod: false,
 				wsaddrs: [],
-				loginInfo: {
-					"token": "",
-					"user_uid": "",
-					"kefu_uid": "",
-					"project_uid": window.projectUuid,
-					"channel_uid": "",
+				visitorLoginResp: {
+					im_token: "",
+					user_uid: "",
+					channel_uid: "",
+				},
+				visitorLoginReq: {
+					platform: window.navigator.platform || getOperatingSystem(),
+					referer: window.location.href,
+					project_uid: window.projectUid,
+					user_uid: "",
+					reset_kefu: true,
+				},
+				syncMessagesReq: {
+					channel_uid: "",
+					start_message_seq: 0,
+					end_message_seq: 0,
+					limit: 999,
+					pull_mode: PullMode.Down,
 				},
 				addrUsed: false,
 				unreadMsgCount: 0,
 				onChatTab: true,
 				onChatPage: true,
+				channelType: ChannelTypeGroup,
+				isLogined: false,
 			}
 		},
 		created() {},
@@ -246,9 +263,10 @@
 			async startup() {
 				const data = await this.visitorLogin();
 				if (!data) return;
+				this.isLogined = true
 				const _this = this;
-				WKSDK.shared().config.uid = this.loginInfo.user_uid; // 用户uid（需要在悟空通讯端注册过）
-				WKSDK.shared().config.token = this.loginInfo.token; // 用户token （需要在悟空通讯端注册过）
+				WKSDK.shared().config.uid = this.visitorLoginResp.user_uid; // 用户uid（需要在悟空通讯端注册过）
+				WKSDK.shared().config.token = this.visitorLoginResp.im_token; // 用户token （需要在悟空通讯端注册过）
 				// 获取im连接地址
 				WKSDK.shared().config.provider.connectAddrCallback = async (callback) => {
 					if (!this.wsaddrs || this.wsaddrs.length == 0) {
@@ -293,9 +311,9 @@
 				});
 				// 消息监听
 				WKSDK.shared().chatManager.addMessageListener((message) => {
-					// console.log(message)
+					console.log("接收到消息-->", message)
 					//只接收群频道的消息
-					if (message.channel.channelType !== ChannelTypeGroup) return;
+					if (!this.verifyMsg(message)) return;
 					this.massageStore.push(message);
 					//缓存至本地: 1.先读取，再写入
 					this.saveCacheMessages(this.massageStore);
@@ -308,6 +326,7 @@
 				// 提供频道内消息同步的数据源
 				WKSDK.shared().config.provider.syncMessagesCallback = async (channel, opts) => {
 					// 后端提供的获取某个频道的消息列表的接口数据，然后构建成Message对象数组返回
+					// 由于没有js的实现，其实懒得写，这里使用缓存
 					return this.getCacheMessages();
 				}
 				//加载聊天记录
@@ -402,54 +421,53 @@
 				});
 			},
 			//发送message
-			sendMessage(message) {
-				WKSDK.shared().chatManager.send(message, new Channel(this.loginInfo.channel_uid, ChannelTypeGroup))
+			async sendMessage(message) {
+				if (!this.isLogined) {
+					this.errorMessage("未登錄");
+					return false
+				}
+				return await WKSDK.shared().chatManager.send(message, new Channel(this.visitorLoginResp.channel_uid,
+					ChannelTypeGroup)).then(reason => {
+					// sendSound() //播放声音
+					return true
+				}).catch(err => {
+					return false
+				})
 			},
 			//用户登录
 			async visitorLogin() {
 				if (!getApp().globalData.chatApiUrl) return
-				const base64Data = localStorage.getItem(cacheInfoKey)
-				let info = null
-				const cacheLastLoginTimeKey = "lastLoginAt"
+				const lastLoginAtValue = localStorage.getItem(cacheLastLoginTimeKey);
+				const base64Data = localStorage.getItem(cacheLoginInfoKey)
+				let user_uid = ""
 				try {
 					if (base64Data) {
-						const jsonStr = decryptJsonBase64Data(base64Data)
-						info = JSON.parse(jsonStr)
-						this.loginInfo = info;
-						//防止刷新时，频繁登录
-						const lastLoginAtValue = localStorage.getItem(cacheLastLoginTimeKey);
-						if (lastLoginAtValue) {
-							const lastLoginAt = parseInt(lastLoginAtValue)
-							if (!isTimestamp(lastLoginAt)) {
-								localStorage.removeItem(cacheLastLoginTimeKey);
-							} else {
-								if (!isThirtyMinutesAgo(lastLoginAt)) {
-									//如果不是30分钟前登录的，则无需再次登录，直接返回
-									return info
-								}
-							}
-						}
+						const time = loadLastLoginTime(cacheLastLoginTimeKey);
+						const jsonStr = decryptJsonBase64Data(base64Data, time)
+						const info = JSON.parse(jsonStr)
+						user_uid = info.user_uid || "";
 					}
 				} catch (e) {
 					//TODO handle the exception
+					localStorage.removeItem(cacheLoginInfoKey);
+					localStorage.removeItem(cacheLastLoginTimeKey)
 				}
 
-				const _this = this
-				const data = {
-					"platform": window.navigator.platform,
-					"referer": window.location.href,
-					"projectUuid": window.projectUuid,
-					"token": info?.token || "",
-				}
-				return axios.post(`${getApp().globalData.chatApiUrl}/visitor/login`, encryptData(data))
-					.then(function(response) {
+				this.visitorLoginReq.user_uid = user_uid || "";
+				const data = encryptData(this.visitorLoginReq)
+				return axios.post(`${getApp().globalData.chatApiUrl}/visitor/login`, data)
+					.then((response) => {
 						const base64Data = response.data
 						const jsonStr = decryptJsonBase64Data(base64Data)
 						try {
-							const data = JSON.parse(jsonStr)
-							_this.loginInfo = data
-							localStorage.setItem(cacheInfoKey, base64Data);
-							getApp().globalData.chatUid = data.user_uid
+							const info = JSON.parse(jsonStr)
+							if(info.user_uid !== this.visitorLoginReq.user_uid) {
+								localStorage.removeItem(cacheMessagesKey)
+							}
+							this.visitorLoginResp = info;
+							this.syncMessagesReq.channel_uid = this.visitorLoginResp.channel_uid;
+							localStorage.setItem(cacheLoginInfoKey, base64Data);
+							getApp().globalData.chatUid = info.user_uid
 							localStorage.setItem(cacheLastLoginTimeKey, Date.now().toString());
 							return info
 						} catch (error) {
@@ -457,21 +475,36 @@
 						}
 						return null;
 					})
-					.catch(function(error) {
+					.catch((error) => {
 						console.log(error);
 					});
 			},
 			async getWsaddrs() {
-				// if (!this.loginInfo || !this.loginInfo.uuid) return [];
-				return axios.get(`${getApp().globalData.chatApiUrl}/users/${this.loginInfo.uuid}/im`).then(resp => {
-					const data = resp.data
-					let addr = data.wss_addr
-					if (!addr || addr === '') {
-						addr = data.ws_addr
-					}
-					return [addr]
-				})
+				return axios.get(`${getApp().globalData.chatApiUrl}/users/${this.visitorLoginResp.user_uid}/im`).then(
+					resp => {
+						const data = resp.data
+						let addr = data.wss_addr
+						if (!addr || addr === '') {
+							addr = data.ws_addr
+						}
+						return [addr]
+					})
 			},
+			// async getChannelMessage(req) {
+			// 	const data = encryptData(req)
+			// 	const resp = axios.post(apiUrl + "/visitor/message/sync", data).then(resp => {
+			// 		const data = resp.data.messages;
+			// 		if (!Array.isArray(data)) {
+			// 			console.error("data type error")
+			// 			return [];
+			// 		}
+			// 		const res = (data as RecvPacket[]).map(msg => {
+			// 			return Convert.toMessage(msg)
+			// 		})
+			// 		return res
+			// 	})
+			// 	return resp
+			// },
 			getCacheMessages() {
 				const messagesText = localStorage.getItem(cacheMessagesKey);
 				let messages = [];
@@ -549,7 +582,10 @@
 				if (text.length === 0) {
 					return;
 				}
-				this.sendMessage(new MessageText(text));
+				let status = this.sendMessage(new MessageText(text))
+				if(!status){
+					return;
+				}
 				this.holdFocus = true; //保持聚焦
 				this.isFocus = true;
 				this.oninput();
@@ -664,9 +700,9 @@
 				return getWindowInfo.windowWidth
 			},
 			verifyMsg(msg) {
-				if (msg.channel.channelType !== channelType) return false;
+				if (msg.channel.channelType !== this.channelType) return false;
 				if (typeof msg.contentType !== "number" && typeof msg.contentType !== "undefined") return false
-				const contentType = getMessageType(msg)
+				const contentType = this.getMessageType(msg)
 				switch (contentType) {
 					case 1:
 						//默认为文本消息
@@ -689,9 +725,11 @@
 			getMessageType(msg) {
 				return (msg.content?.realContentType || msg.content?._contentType || msg.content?.contentObj?.type) ?? 1
 			},
-			getKefuAvatar(kefu_uid) {
+			getKefuAvatar(msg) {
+				return "https://swifttalk-storage.oss-cn-hongkong.aliyuncs.com/icon/contact_blue.png";
+				// console.log(msg.Target)
 				const apiUrl = getApp().globalData.chatApiUrl;
-				return `${apiUrl}/users/${kefu_uid}/avatar`;
+				return `${apiUrl}/users/${msg.fromUID}/avatar`;
 			},
 		},
 	}

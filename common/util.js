@@ -413,6 +413,39 @@ export function isTimestamp(timestamp) {
     return regex.test(s);
 }
 
+export function getOperatingSystem() {
+    var userAgent = navigator.userAgent;
+    if (/Windows/.test(userAgent)) {
+        return "Windows";
+    } else if (/Mac/.test(userAgent)) {
+        return "Mac";
+    } else if (/Linux/.test(userAgent)) {
+        return "Linux";
+    } else if (/Android/.test(userAgent)) {
+        return "Android";
+    } else if (/iPhone|iPad|iPod/.test(userAgent)) {
+        return "iOS";
+    } else if (/arm/.test(userAgent)) {
+        return "ARM";
+    } else {
+        return "Unknown";
+    }
+}
+
+export function loadLastLoginTime(key) {
+    if (!key) return undefined
+    const lastLoginAtValue = localStorage.getItem(key);
+    if (lastLoginAtValue) {
+        const lastLoginAt = parseInt(lastLoginAtValue);
+        if (isNaN(lastLoginAt)) {
+            localStorage.removeItem(key);
+            return undefined
+        }
+        return new Date(lastLoginAt)
+    }
+    return undefined
+}
+
 export {
 	friendlyDate,
 	msgDate,
