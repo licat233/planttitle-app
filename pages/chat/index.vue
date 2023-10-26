@@ -703,7 +703,7 @@
 				if (msg.channel.channelType !== this.channelType) return false;
 				if (typeof msg.contentType !== "number" && typeof msg.contentType !== "undefined") return false
 				//不是指定的频道
-				if (msg.channel.channelID !== visitorLoginResp.current.channel_uid) return false;
+				if (msg.channel.channelID !== this.visitorLoginResp.channel_uid) return false;
 				const contentType = this.getMessageType(msg)
 				switch (contentType) {
 					case 1:
