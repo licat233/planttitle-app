@@ -461,7 +461,7 @@
 						const jsonStr = decryptJsonBase64Data(base64Data)
 						try {
 							const info = JSON.parse(jsonStr)
-							if(info.user_uid !== this.visitorLoginReq.user_uid) {
+							if (info.user_uid !== this.visitorLoginReq.user_uid) {
 								localStorage.removeItem(cacheMessagesKey)
 							}
 							this.visitorLoginResp = info;
@@ -583,7 +583,7 @@
 					return;
 				}
 				let status = this.sendMessage(new MessageText(text))
-				if(!status){
+				if (!status) {
 					return;
 				}
 				this.holdFocus = true; //保持聚焦
@@ -702,6 +702,8 @@
 			verifyMsg(msg) {
 				if (msg.channel.channelType !== this.channelType) return false;
 				if (typeof msg.contentType !== "number" && typeof msg.contentType !== "undefined") return false
+				//不是指定的频道
+				if (msg.channel.channelID !== visitorLoginResp.current.channel_uid) return false;
 				const contentType = this.getMessageType(msg)
 				switch (contentType) {
 					case 1:
