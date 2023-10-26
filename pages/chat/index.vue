@@ -150,10 +150,8 @@
 		decryptJsonBase64Data,
 		encryptData
 	} from "../../common/crypto";
-
-	if (!window.projectUuid) {
-		window.projectUuid = "fb4f597879834a52af08fb63cacf2963"
-	}
+	
+	window.projectUid = window.projectUid || "";
 
 	const MsgType = {
 		VisitorMsgType: 0,
@@ -166,9 +164,9 @@
 
 	const ChannelTypeGroup = 2;
 
-	const cacheLoginInfoKey = "info-" + window.projectUuid;
-	const cacheMessagesKey = "messages-" + window.projectUuid;
-	const cacheLastLoginTimeKey = "visitorLastLoginAt";
+	const cacheLoginInfoKey = "info-" + window.projectUid;
+	const cacheMessagesKey = "messages-" + window.projectUid;
+	const cacheLastLoginTimeKey = "visitorLastLoginAt-" + window.projectUid;
 
 	export default {
 		components: {
@@ -261,6 +259,7 @@
 		},
 		methods: {
 			async startup() {
+				if (!window.projectUid) return;
 				const data = await this.visitorLogin();
 				if (!data) return;
 				this.isLogined = true
@@ -311,7 +310,6 @@
 				});
 				// 消息监听
 				WKSDK.shared().chatManager.addMessageListener((message) => {
-					console.log("接收到消息-->", message)
 					//只接收群频道的消息
 					if (!this.verifyMsg(message)) return;
 					this.massageStore.push(message);
