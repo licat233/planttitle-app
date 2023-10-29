@@ -147,7 +147,7 @@
 		PullMode
 	} from "wukongimjssdk";
 	import {
-		decryptJsonBase64Data,
+		decryptJSONString,
 		encryptData
 	} from "../../common/crypto";
 	
@@ -441,7 +441,7 @@
 				try {
 					if (base64Data) {
 						const time = loadLastLoginTime(cacheLastLoginTimeKey);
-						const jsonStr = decryptJsonBase64Data(base64Data, time)
+						const jsonStr = decryptJSONString(base64Data, time)
 						const info = JSON.parse(jsonStr)
 						user_uid = info.user_uid || "";
 					}
@@ -456,7 +456,7 @@
 				return axios.post(`${getApp().globalData.chatApiUrl}/visitor/login`, data)
 					.then((response) => {
 						const base64Data = response.data
-						const jsonStr = decryptJsonBase64Data(base64Data)
+						const jsonStr = decryptJSONString(base64Data)
 						try {
 							const info = JSON.parse(jsonStr)
 							if (info.user_uid !== this.visitorLoginReq.user_uid) {
@@ -474,7 +474,7 @@
 						return null;
 					})
 					.catch((error) => {
-						console.log(error);
+						// console.log(error);
 					});
 			},
 			async getWsaddrs() {

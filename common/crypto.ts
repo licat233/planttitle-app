@@ -1,58 +1,21 @@
-import dayjs from "dayjs";
+import { Buffer } from 'buffer';
 
-//加密并返回base64编码的字符串
+//加密
 export function encryptData(data: any): string {
     const input = JSON.stringify(data)
-    const secretData = encryptString(input)
-    // 将加密后的字符串进行 Base64 编码
-    const encodedData = window.btoa(secretData);
-    return encodedData
+    return encryptString(input)
 }
 
-//解密base64编码的json字符串
-export function decryptJsonBase64Data(data: string, time: Date = new Date()): string {
-    // 将 Base64 编码的字符串解码为原始字符串
-    data = window.atob(data)
-    const secretKey = genSecretKey(time)
-    const decryptData = decryptJSONString(data, secretKey)
-    return decryptData
-}
-
-function encryptString(input: string, secretKey?: string): string {
-    secretKey = secretKey || genSecretKey()
-    const n = secretKey.length
-    let encrypted = '';
-    for (let i = 0; i < input.length; i++) {
-        const charCode = input.charCodeAt(i);
-        const iv = secretKey.charCodeAt(i % n)
-        const encryptedCharCode = charCode + iv; // 加密算法，简单地将字符编码+
-        encrypted += String.fromCharCode(encryptedCharCode);
-    }
-    return encrypted;
-}
-
-export function decryptString(input: string, secretKey?: string): string {
-    secretKey = secretKey || genSecretKey()
-    const n = secretKey.length
-    let decrypted = '';
-    for (let i = 0; i < input.length; i++) {
-        const charCode = input.charCodeAt(i);
-        const iv = secretKey.charCodeAt(i % n)
-        const decryptedCharCode = charCode - iv; // 解密算法，简单地将字符编码-
-        decrypted += String.fromCharCode(decryptedCharCode);
-    }
-    return decrypted;
-}
-
-export function decryptJSONString(input: string, secretKey?: string): string {
-    const date = new Date()
-    secretKey = secretKey || genSecretKey(date)
-    let decrypted = decryptString(input, secretKey)
+export function decryptJSONString(input: string, date?: Date): string {
+    if(!input) return "";
+    let decrypted = decryptString(input, genSecretKey(date || new Date()))
     if (!isJSON(decrypted)) {
+        if (date) {
+            return ""
+        }
         //不符合预期的规范，表示解密失败
         //获取上一分钟，再次解密
-        secretKey = genSecretKey(date, true)
-        decrypted = decryptString(input, secretKey)
+        decrypted = decryptString(input, genSecretKey(date, true))
         if (!isJSON(decrypted)) {
             return ""
         }
@@ -60,19 +23,76 @@ export function decryptJSONString(input: string, secretKey?: string): string {
     return decrypted;
 }
 
-export function getPreviousMinuteDate(date?: Date): Date {
-    date = date || new Date()
-    return dayjs(date).subtract(1, 'minutes').toDate()
+export function decodeBase64(base64String: string): string {
+    if (typeof window === "undefined") {
+        const buffer = Buffer.from(base64String, 'base64');
+        return buffer.toString('utf-8');
+    }
+    return window.atob(base64String)
+}
+
+export function encodeBase64(str: string): string {
+    if (typeof window === "undefined") {
+        const buffer = Buffer.from(str, 'utf-8');
+        return buffer.toString('base64');
+    }
+    return window.btoa(str)
+}
+
+//加密字符串
+export function encryptString(input: string, secretKey?: string): string {
+    secretKey = secretKey || genSecretKey()
+    const n = secretKey.length
+    const byteArray: number[] = []
+    for (let i = 0; i < input.length; i++) {
+        const charCode = input.charCodeAt(i);
+        const iv = secretKey.charCodeAt(i % n)
+        const encryptedCharCode = charCode + iv;
+        byteArray.push(encryptedCharCode)
+    }
+    //编码成base64字符
+    const encryptData = encodeBase64(byteArray.toString())
+    return encryptData
+}
+
+//解密字符串
+export function decryptString(input: string, secretKey?: string): string {
+    secretKey = secretKey || genSecretKey()
+    // 解码base64
+    input = decodeBase64(input)
+    // 解析字节数组字符串为字节数组
+    const byteArray = input.split(',').map(Number);
+    const n = secretKey.length;
+    const decryptedBytes = new Uint8Array(byteArray.length);
+    for (let i = 0; i < byteArray.length; i++) {
+        const byte = byteArray[i];
+        const iv = secretKey.charCodeAt(i % n);
+        const decryptedByte = byte - iv;
+        decryptedBytes[i] = decryptedByte;
+    }
+
+    // 将解密后的字节数组转换为字符串
+    const decoder = new TextDecoder();
+    const decrypted = decoder.decode(decryptedBytes);
+    return decrypted;
 }
 
 export function genSecretKey(date?: Date, previousMinute?: boolean): string {
-    date = date || new Date()
-    if (previousMinute) {
+    if (!date) {
+        date = new Date();
+    }
+    if (previousMinute === true) {
         date = getPreviousMinuteDate(date)
     }
-    const timestampInSeconds = Math.floor(date.getTime() / 1000)
-    const timestampInMinutes = timestampInSeconds - (timestampInSeconds % 60); // 当前分钟的时间戳
-    return timestampInMinutes + "";
+    const timestampInSeconds = Math.floor(date.getTime() / 1000);
+    const timestampInMinutes = timestampInSeconds - (timestampInSeconds % 60);
+    const s = (timestampInMinutes * 3 / 10).toString();
+
+    return reverseString(s) + s;
+}
+
+export function reverseString(input: string): string {
+    return input.split('').reverse().join('');
 }
 
 export function isJSON(str: string): boolean {
@@ -82,4 +102,18 @@ export function isJSON(str: string): boolean {
     } catch (e) {
         return false;
     }
+}
+
+export function getPreviousMinuteDate(date?: Date): Date {
+    // 创建一个当前时间的 Date 对象
+    const now = date || new Date();
+
+    // 获取当前时间的分钟数，并将其减 1，得到上一分钟的分钟数
+    const lastMinute = now.getMinutes() - 1;
+
+    // 创建一个新的 Date 对象，设置其分钟数为上一分钟的分钟数
+    const lastMinuteDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), lastMinute);
+
+    // 输出上一分钟的时间
+    return lastMinuteDate
 }
