@@ -7,7 +7,7 @@ export function encryptData(data: any): string {
 }
 
 export function decryptJSONString(input: string, date?: Date): string {
-    if(!input) return "";
+    if (!input) return "";
     let decrypted = decryptString(input, genSecretKey(date || new Date()))
     if (!isJSON(decrypted)) {
         if (date) {
@@ -41,9 +41,11 @@ export function encodeBase64(str: string): string {
 
 //加密字符串
 export function encryptString(input: string, secretKey?: string): string {
+    if (!input) return ""
     secretKey = secretKey || genSecretKey()
     const n = secretKey.length
     const byteArray: number[] = []
+    //进行 Unicode 编码
     for (let i = 0; i < input.length; i++) {
         const charCode = input.charCodeAt(i);
         const iv = secretKey.charCodeAt(i % n)
@@ -57,24 +59,22 @@ export function encryptString(input: string, secretKey?: string): string {
 
 //解密字符串
 export function decryptString(input: string, secretKey?: string): string {
+    if (!input) return ""
     secretKey = secretKey || genSecretKey()
-    // 解码base64
+    // 解码base64，得到Unicode 编码
     input = decodeBase64(input)
     // 解析字节数组字符串为字节数组
     const byteArray = input.split(',').map(Number);
     const n = secretKey.length;
-    const decryptedBytes = new Uint8Array(byteArray.length);
+    const res: string[] = []
     for (let i = 0; i < byteArray.length; i++) {
         const byte = byteArray[i];
         const iv = secretKey.charCodeAt(i % n);
         const decryptedByte = byte - iv;
-        decryptedBytes[i] = decryptedByte;
+        res[i] = String.fromCharCode(decryptedByte);
     }
 
-    // 将解密后的字节数组转换为字符串
-    const decoder = new TextDecoder();
-    const decrypted = decoder.decode(decryptedBytes);
-    return decrypted;
+    return res.join("")
 }
 
 export function genSecretKey(date?: Date, previousMinute?: boolean): string {
